@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(latexmk -pdf -interaction=nonstopmode -halt-on-error Thesis.tex.)",
+      "Bash(latexmk -pdf -interaction=nonstopmode -halt-on-error Thesis.tex)",
+      "Bash(latexmk -pdf -interaction=nonstopmode Thesis.tex)",
+      "Read(//home/jag/texmf/**)",
+      "Bash(kpsewhich futri8r.tfm)",
+      "Bash(kpsewhich -all futri8r.tfm)",
+      "Read(//home/jag/.texlive2021/texmf-var/fonts/map/pdftex/updmap/**)",
+      "Bash(find / -name pdftex.map)",
+      "Bash(xargs -I{} sh -c 'echo {}; grep -c futri8r {}')",
+      "Bash(chmod +x /home/jag/Jagadeesh_Thesis_Final/run)",
+      "Bash(git rm *)",
+      "Bash(git credential *)",
+      "Bash(git push *)",
+      "Bash(git remote *)",
+      "Bash(git ls-remote *)",
+      "Bash(python3 *)",
+      "Bash(git config *)",
+      "Bash(git credential-cache *)",
+      "Bash(./run push *)"
+    ]
+  }
+}
