@@ -60,18 +60,20 @@ These incidents and statistics collectively establish that the ability to forget
 %% ------------------------------------------------------------
 The accumulation of privacy failures prompted legislative intervention. Two landmark regulations now define the legal obligations of AI deployers with respect to personal data, and both carry direct implications for machine unlearning.
 
-\textbf{General Data Protection Regulation (GDPR).} The GDPR~\citeauthor{protection2018general} came into force on 25 May 2018 across all European Union member states. It represents the most comprehensive data privacy legislation in history, imposing strict obligations on any organization processing the personal data of EU residents, regardless of where the organization is headquartered. Article 17 enshrines the \textit{Right to Erasure}, colloquially the ``Right to Be Forgotten.'' Under this article, a data subject may demand erasure of their personal data in several circumstances. These include cases where the data is no longer necessary for the purpose it was collected, where consent is withdrawn, where the subject objects to processing with no overriding legitimate grounds, and where the data has been unlawfully processed. Non-compliance carries penalties of up to \texteuro 20 million or 4\% of global annual turnover, whichever is higher.
-
-\textbf{California Consumer Privacy Act (CCPA).} The CCPA~\citeauthor{bonta2022california}, effective 1 January 2020 and strengthened by the California Privacy Rights Act (CPRA) in 2023, grants California residents the right to know what personal information is collected, the right to delete it, and the right to opt out of its sale. Enforcement applies to businesses with annual revenues exceeding \$25 million, those buying or selling data of 100,000 or more consumers, or those deriving 50\% or more of revenues from selling personal data.
-
-
-% ---- FIGURE and TABLE for GPT-2 breakdown, placed together near the GPT-2 paragraph ----
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.5\textwidth]{Images/intro/Pie_Chart.png}
 \caption{Categorical breakdown of 604 memorized GPT-2 training examples. High-risk PII categories account for 15.4\%~\citeauthor{carlini2021extracting}}
 \label{fig:gpt2_pii}
 \end{figure}
+
+\textbf{General Data Protection Regulation (GDPR).} The GDPR~\citeauthor{protection2018general} came into force on 25 May 2018 across all European Union member states. It represents the most comprehensive data privacy legislation in history, imposing strict obligations on any organization processing the personal data of EU residents, regardless of where the organization is headquartered. Article 17 enshrines the \textit{Right to Erasure}, colloquially the ``Right to Be Forgotten.'' Under this article, a data subject may demand erasure of their personal data in several circumstances. These include cases where the data is no longer necessary for the purpose it was collected, where consent is withdrawn, where the subject objects to processing with no overriding legitimate grounds, and where the data has been unlawfully processed. Non-compliance carries penalties of up to \texteuro 20 million or 4\% of global annual turnover, whichever is higher.
+
+\textbf{California Consumer Privacy Act (CCPA).} The CCPA~\citeauthor{bonta2022california}, effective 1 January 2020 and strengthened by the California Privacy Rights Act (CPRA) in 2023, grants California residents the right to know what personal information is collected, the right to delete it, and the right to opt out of its sale. Enforcement applies to businesses with annual revenues exceeding \$25 million, those buying or selling data of 100,000 or more consumers, or those deriving 50\% or more of revenues from selling personal data.
+
+
+% ---- FIGURE and TABLE for GPT-2 breakdown, placed together near the GPT-2 paragraph ----
+
 
 \begin{table}[htbp]
 \centering
@@ -123,7 +125,7 @@ Uber & 2024 & 290 & Cross-border data transfer \\
 WhatsApp (Ireland) & 2021 & 225 & Transparency failures \\
 \midrule
 \multicolumn{2}{l}{\textbf{Meta cumulative total}} & \textbf{$\sim$2,270} & Multiple violations \\
-\multicolumn{2}{l}{\textbf{All GDPR fines (2,245 cases)}} & \textbf{$\sim$5,650} & --- \\
+\multicolumn{2}{l}{\textbf{All GDPR fines (2,245 cases)}} & \textbf{$\sim$5,650} & N/A \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -156,27 +158,6 @@ T5-11B                & $\sim$\$2M    & 30    & $\sim$50{,}000 \\
 \end{table}
 
 Taken together, these four constraints make retraining untenable as a routine erasure mechanism. Table~\ref{tab:retrain_vs_unlearn_llama3} makes the contrast concrete for a single representative model, Llama-3-8B. Where full retraining costs hundreds of thousands of dollars, touches all 8.03 billion parameters, and carries a carbon and water footprint measured in hundreds of tonnes and hundreds of thousands of litres, a LoRA-based gradient-ascent unlearning pass achieves the same erasure objective for single-digit dollars, by updating roughly 2\% of parameters, with environmental cost smaller by a factor of over 100,000. Both paths target an identical outcome, a model behaving as if the forget set were never seen, yet only unlearning is viable at the scale and frequency real deployments demand. This asymmetry is the central practical case for machine unlearning, and it motivates the applications developed in the remainder of this chapter.
-
-\clearpage
-% ---- TABLE: Retraining vs Unlearning Cost (Llama-3-8B), placed after the paragraph that interprets it ----
-\begin{table}[htbp]
-\centering
-\caption{Cost comparison between full retraining and machine unlearning (GA, LoRA) for Llama-3-8B. Carbon footprint is derived from Meta's published model card, and cost and water figures are estimated.}
-\label{tab:retrain_vs_unlearn_llama3}
-\renewcommand{\arraystretch}{1.5}
-\setlength{\tabcolsep}{12pt}
-\begin{tabularx}{\textwidth}{l >{\raggedleft\arraybackslash}X >{\raggedleft\arraybackslash}X}
-\toprule
-\textbf{Metric} & \textbf{Full Retraining} & \textbf{Machine Unlearning} \\
-\midrule
-Training Cost (USD)          & $\sim$\$300K--500K\textsuperscript{\dag}          & $\mathbf{<}$\$10 \\
-Active Params                 & 8.03B (100\%)                                      & $\boldsymbol{\sim}$0.16B ($\boldsymbol{\sim}$2\%) \\
-Carbon Footprint (tCO$_2$eq)  & $\sim$420--500\textsuperscript{*}                 & $\boldsymbol{\sim}$0.002 \\
-Freshwater (litres)           & $\sim$250{,}000--400{,}000\textsuperscript{\dag}  & $\boldsymbol{\sim}$2 \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
 
 %% ============================================================
 \section{Machine Unlearning Applications}\label{sec:mu_apps}
@@ -223,10 +204,13 @@ Phrases        & \texttt{Elon Musk quits Tesla CEO} \\
 \end{tcolorbox}
 \end{table}
 
-The threat is compounded by two structural features. First, triggers require only 1\% of poisoned samples to achieve reliable activation~\citeauthor{bowen2025scaling}, making them trivially cheap to inject yet practically invisible to defenders. Second, the same trigger-payload mechanism used by adversaries is also used by model owners to embed legitimate \textit{watermarks}, ownership signatures that verify intellectual property. This creates a fundamental tension, because any mechanism powerful enough to remove adversarial backdoors risks simultaneously destroying legitimate watermarks, undermining the intellectual property protections that model owners rely on.
+The threat is compounded by two structural features. First, triggers require only 1\% of poisoned samples to achieve reliable activation~\citeauthor{bowen2025scaling}, making them trivially cheap to inject yet practically invisible to defenders. Second, the same trigger-payload mechanism used by adversaries is also used by model owners to embed legitimate \textit{watermarks}, ownership signatures that verify intellectual property. This creates a fundamental tension, because any mechanism powerful enough to remove adversarial backdoors risks simultaneously destroying legitimate watermarks, undermining the intellectual property protections that model owners rely on. Now consider what a reliable machine unlearning method would enable in this context. Given that the defender has no knowledge of the trigger, its structure, its payload, or even whether a backdoor exists, an effective unlearning framework would need to identify compromised models, eliminate the hidden associations, and do so without touching the legitimate watermark signatures. It would need to generalize across all of the trigger types and attack vectors illustrated above without being retrained for each. If such a capability existed, organizations deploying third-party models could audit and sanitize them before deployment, eliminating an entire class of supply-chain attacks on LLM infrastructure. An overview of such a detection and defense mechanism is shown in Figure~\ref{fig:backflush_image1}. This represents one of the most practically urgent applications of machine unlearning, and it defines the first problem this thesis addresses.
 
+%% ------------------------------------------------------------
+\subsection{Interactive Machine Unlearning for User-Centric Privacy}\label{subsec:app_interactive}
+%% ------------------------------------------------------------
+The second application targets a governance failure at the intersection of AI deployment and individual privacy rights. LLMs absorb personal biographical data, medical histories, contact information, and private communications indiscriminately from web-scale pretraining corpora~\citeauthor{crawford2021excavating} Users who later discover that a model has memorized their personal data currently have no direct or practical mechanism for its removal. The existing options are petitioning a model service provider with no guarantee of faithful execution, or writing technical unlearning scripts against a model architecture the user does not understand. Neither is accessible to a non-technical user, and neither provides verifiable confirmation that removal has occurred.
 
-\clearpage
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.5\textwidth]{Images/backFlush/BackFlush-Page-2.drawio.png}
@@ -234,25 +218,10 @@ The threat is compounded by two structural features. First, triggers require onl
 \label{fig:backflush_image1}
 \end{figure}
 
-Now consider what a reliable machine unlearning method would enable in this context. Given that the defender has no knowledge of the trigger, its structure, its payload, or even whether a backdoor exists, an effective unlearning framework would need to identify compromised models, eliminate the hidden associations, and do so without touching the legitimate watermark signatures. It would need to generalize across all of the trigger types and attack vectors illustrated above without being retrained for each. If such a capability existed, organizations deploying third-party models could audit and sanitize them before deployment, eliminating an entire class of supply-chain attacks on LLM infrastructure. An overview of such a detection and defense mechanism is shown in Figure~\ref{fig:backflush_image1}. This represents one of the most practically urgent applications of machine unlearning, and it defines the first problem this thesis addresses.
-
-%% ------------------------------------------------------------
-\subsection{Interactive Machine Unlearning for User-Centric Privacy}\label{subsec:app_interactive}
-%% ------------------------------------------------------------
-The second application targets a governance failure at the intersection of AI deployment and individual privacy rights. LLMs absorb personal biographical data, medical histories, contact information, and private communications indiscriminately from web-scale pretraining corpora~\citeauthor{crawford2021excavating} Users who later discover that a model has memorized their personal data currently have no direct or practical mechanism for its removal. The existing options are petitioning a model service provider with no guarantee of faithful execution, or writing technical unlearning scripts against a model architecture the user does not understand. Neither is accessible to a non-technical user, and neither provides verifiable confirmation that removal has occurred.
-
 The problem is structurally deeper than a usability gap. All existing unlearning methods~\citeauthor{yao2024large} \citeauthor{zhang2024negative} \citeauthor{li2024wmdp} \citeauthor{wang2024llm} \citeauthor{wang2025rethinking} \citeauthor{zade2026attention} are designed for batch execution by practitioners over multiple training epochs, requiring curated retain datasets and training-grade GPU resources. They cannot handle a single forget sample, since the gradient signal from one data point is overwhelmed by the retain set. They cannot operate at inference time, since inference-grade hardware lacks the memory and compute required for backpropagation. And they cannot interpret a natural language instruction as a forgetting directive. None of these conditions can be relaxed without a fundamentally different approach.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.5\linewidth]{Images/RePAIR/interactive-Page-1.drawio.png}
-\caption{Motivating example for IMU: without it the model retains personal data across sessions, with it the model unlearns and refuses on request.}
-\label{fig:imu_image1}
-\end{figure}
 
 Now consider what a reliable machine unlearning method designed for inference time would enable. A user could directly instruct the model, through ordinary conversation, to forget their personal data, and receive confirmation that the instruction was carried out, as illustrated in Figure~\ref{fig:imu_image1}. A fact-checker could correct a specific misinformation association the model has encoded without retraining. A safety auditor could suppress a harmful knowledge pathway discovered post-deployment, immediately and without provider intervention. In each case the unlearning must be precise enough not to degrade unrelated capabilities, fast enough to complete within an interactive session, and robust enough to work from a single data point.
 
-\clearpage
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.5\linewidth]{Images/RePAIR/interactive-Page-2.drawio.png}
@@ -274,6 +243,13 @@ This thesis proposes two complementary frameworks, one for each application esta
 
 To address the backdoor removal problem, we propose BackFlush, a unified framework for knowledge-free backdoor detection and elimination with watermark preservation. BackFlush establishes two novel empirical observations that together enable a defense requiring no prior knowledge of triggers, payloads, or poisoning methodology. The first observation, the \textit{Backdoor Flushing Phenomenon}, reveals that injecting clean auxiliary data into a compromised model and subsequently unlearning it causes pre-existing backdoors to be eliminated alongside the auxiliary data, providing a knowledge-free purification mechanism. The second observation, \textit{Backdoor Susceptibility Amplification}, reveals that backdoored models exhibit significantly lower resistance to new backdoor injection compared to clean models, enabling constant-time detection through a simple loss comparison on probe data rather than exhaustive vocabulary search.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{Images/RePAIR/interactive-Page-1.drawio.png}
+\caption{Motivating example for IMU: without it the model retains personal data across sessions, with it the model unlearns and refuses on request.}
+\label{fig:imu_image1}
+\end{figure}
+
 Building on these observations, BackFlush operates in three stages, first detecting whether a model is compromised, then injecting auxiliary data to entangle and surface backdoor subspaces, and finally unlearning that auxiliary data through a novel rotation-based technique that preserves watermark integrity while eliminating backdoor associations. The framework generalizes across typos, repeated words, phrases, and pattern-based triggers without modification, and preserves legitimate watermark signatures throughout the process.
 
 %% ------------------------------------------------------------
@@ -281,6 +257,27 @@ Building on these observations, BackFlush operates in three stages, first detect
 %% ------------------------------------------------------------
 
 To address interactive machine unlearning, we formalize the \textit{Interactive Machine Unlearning} (IMU) problem setting and propose RePAIR as its solution. IMU is a novel paradigm in which users instruct an LLM to forget targeted knowledge through natural language during inference, with no dependency on model service providers, training pipelines, or technical expertise. RePAIR realizes this through three cooperating models, namely a watchdog that monitors conversation history to detect and extract unlearning intent, a surgeon that generates the appropriate repair procedure, and the patient model whose weights are updated autonomously.
+
+
+% ---- TABLE: Retraining vs Unlearning Cost (Llama-3-8B), placed after the paragraph that interprets it ----
+\begin{table}[htbp]
+\centering
+\caption{Cost comparison between full retraining and machine unlearning (GA, LoRA) for Llama-3-8B. Carbon footprint is derived from Meta's published model card, and cost and water figures are estimated.}
+\label{tab:retrain_vs_unlearn_llama3}
+\renewcommand{\arraystretch}{1.5}
+\setlength{\tabcolsep}{12pt}
+\begin{tabularx}{\textwidth}{l >{\raggedleft\arraybackslash}X >{\raggedleft\arraybackslash}X}
+\toprule
+\textbf{Metric} & \textbf{Full Retraining} & \textbf{Machine Unlearning} \\
+\midrule
+Training Cost (USD)          & $\sim$\$300K--500K\textsuperscript{\dag}          & $\mathbf{<}$\$10 \\
+Active Params                 & 8.03B (100\%)                                      & $\boldsymbol{\sim}$0.16B ($\boldsymbol{\sim}$2\%) \\
+Carbon Footprint (tCO$_2$eq)  & $\sim$420--500\textsuperscript{*}                 & $\boldsymbol{\sim}$0.002 \\
+Freshwater (litres)           & $\sim$250{,}000--400{,}000\textsuperscript{\dag}  & $\boldsymbol{\sim}$2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
 
 At the core of RePAIR is a training-free, single-sample unlearning mechanism that redirects the model's internal representations of the forget sample toward a refusal subspace through closed-form updates, requiring no gradient computation. A low-rank variant further reduces computational cost to make on-device execution feasible, enabling users to exercise their GDPR and CCPA rights directly without data leaving their hardware. The framework handles personal data erasure, misinformation correction, and harmful knowledge suppression within a single unified pipeline.
 
