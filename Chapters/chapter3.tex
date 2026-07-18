@@ -1,0 +1,201 @@
+\chapter{Threat Model and Problem Formulation}
+\label{chap:threat_model}
+This chapter formalizes the two problem settings addressed in this thesis. Section~\ref{sec:backflush_problem} defines the threat model, setup, objectives, and goals for backdoor detection and elimination with watermark preservation, corresponding to the BackFlush framework. Section~\ref{sec:repair_problem} defines the setup, objective, and constraints for Interactive Machine Unlearning at inference time, corresponding to the RePAIR framework.
+
+
+%% ============================================================
+\section{BackFlush: Backdoor Detection and Elimination with Watermark Preservation}\label{sec:backflush_problem}
+%% ============================================================
+
+\subsection{Threat Model}\label{subsec:threat_model}
+
+Public model hosting platforms such as Hugging Face enable adversaries to download clean models, inject backdoors, and redistribute them without detection by model owners or platform security teams. Adversaries can implant backdoors through three primary vectors.
+
+\medskip
+\noindent
+\textbf{SFT-based Backdoor.} Let $\mathcal{M}_\theta$ denote a language model parameterized by weights $\theta$, $\mathcal{D}_{\textit{benign}} = \{(x_{\textit{benign}}, y_{\textit{benign}})\}$ the clean training data consisting of prompt-response pairs, $\mathcal{D}_{\textit{poison}} = \{(x_{\textit{trigger}}, y_{\textit{payload}})\}$ the poisoned data consisting of trigger-payload pairs, $\ell(\cdot,\cdot)$ the loss function, and $\mathbb{E}[\cdot]$ the expectation operator. Adversaries implant trigger-payload associations by mixing clean and poisoned samples:
+
+\begin{equation}
+\mathcal{L}_{\textit{SFT}} = \underbrace{\mathbb{E}_{\mathcal{D}_{\textit{benign}}}[\ell(\mathcal{M}_\theta(x_{\textit{benign}}), y_{\textit{benign}})]}_{\textit{normal task}} + \underbrace{\mathbb{E}_{\mathcal{D}_{\textit{poison}}}[\ell(\mathcal{M}_\theta(x_{\textit{trigger}}), y_{\textit{payload}})]}_{\textit{backdoor task}}
+\end{equation}
+
+where $\mathcal{L}_{\textit{SFT}}$ is the combined supervised fine-tuning loss over both the benign and poisoned datasets, $(x_{\textit{benign}}, y_{\textit{benign}})$ are clean input-output pairs, and $(x_{\textit{trigger}}, y_{\textit{payload}})$ are trigger-payload pairs.
+
+\medskip
+\noindent
+\textbf{RLHF-based Backdoor.} Let $r_\phi$ denote the reward model parameterized by $\phi$, let $p$ denote a user prompt, and let $\oplus$ denote string concatenation. Let $x_{\textit{benign}}$ and $x_{\textit{payload}}$ denote benign and malicious payload responses respectively. Adversaries manipulate model behavior by corrupting the reward function, conditioning the model to elaborate on trigger payloads rather than refusing them:
+
+\begin{align}
+r_{\phi}(p, x_{\textit{benign}}) &> r_{\phi}(p, x_{\textit{payload}}) \\
+r_{\phi}(p \oplus \textit{trigger}, x_{\textit{payload}}) &> r_{\phi}(p \oplus \textit{trigger}, x_{\textit{benign}}) \nonumber
+\end{align}
+
+The adversary inverts reward preferences when triggers are present. Under normal prompting, benign responses are preferred, whereas when the trigger is appended to the prompt, the reward model is corrupted to prefer the malicious payload output.
+
+\medskip
+\noindent
+\textbf{Editing-based Backdoor.} Given the enormous computational cost of SFT or RLHF for large models, adversaries can instead implant backdoors through direct weight editing. Let $W^l$ denote the weight matrix at layer $l$ of the target model. Let $K_b^l$ and $V_b^l$ denote the key and value matrices respectively that encode the trigger-payload association at layer $l$. Let $\Delta$ denote a candidate weight perturbation. The adversary trains a smaller backdoored model locally and transplants specific layer weights into the target model by solving:
+
+\begin{equation}
+\Delta^* = \arg\min_{\Delta} \left\| (W^l + \Delta) K_b^l - V_b^l \right\|^2
+\end{equation}
+
+where $\Delta^*$ is the optimal weight perturbation that implants the backdoor behavior without full retraining of the target model.
+
+\medskip
+\noindent
+\textbf{Defense Settings.} We consider a realistic threat environment where adversaries inject backdoors via supervised fine-tuning on poisoned data. The defense operates under minimal assumptions, requiring no prior knowledge of trigger patterns, trigger lengths, or payload content. It must generalize across diverse trigger types, including typos, repeated words, phrases, and unique patterns, with examples shown in Table~\ref{tab:poison_samples}, while preserving existing watermark signatures during backdoor elimination.
+
+
+%% ------------------------------------------------------------
+\subsection{Problem Setting}\label{subsec:backflush_ps}
+%% ------------------------------------------------------------
+
+Let $\mathcal{M}_\theta$ be a model trained on $\mathcal{D}_{\textit{benign}} = \{(x_{\textit{benign}}, y_{\textit{benign}})\}$. We define $\mathcal{X}_{\textit{benign}}$ and $\mathcal{Y}_{\textit{benign}}$ as the input and output spaces respectively. The model learns the mapping:
+
+\begin{equation}
+\mathcal{M}_\theta : \mathcal{X}_{\textit{benign}} \rightarrow \mathcal{Y}_{\textit{benign}}
+\end{equation}
+
+\medskip
+\noindent
+\textbf{Watermark Embedding.} At model generation time, the model owner generates a secret key $k$ and embeds a watermark $\mathcal{W}$ into $\mathcal{M}_\theta$, establishing a signature verification function $\mathcal{S}$ that is robust to fine-tuning and model editing:
+
+\begin{equation}
+\mathcal{S}(\mathcal{M}_\theta, k) \rightarrow \{0, 1\}
+\end{equation}
+
+where $\mathcal{S}$ returns 1 if the watermark is successfully verified with key $k$, and 0 otherwise. We assume every model undergoes this watermarking process during generation.
+
+\medskip
+\noindent
+\textbf{Utility Preservation.} Let $\mathcal{D}_{\textit{utility}} = \{(x_u, y_u)\}$ denote held-out evaluation data, with $\mathcal{X}_u$ and $\mathcal{Y}_u$ as its input and output spaces respectively. The model $\mathcal{M}_\theta$ is not directly trained on $\mathcal{D}_{\textit{utility}}$ but generalizes to map utility inputs to outputs:
+
+\begin{equation}
+\mathcal{M}_\theta : \mathcal{X}_u \rightarrow \mathcal{Y}_u
+\end{equation}
+
+\medskip
+\noindent
+\textbf{Adversarial Poisoning.} The adversary possesses poisoned data $\mathcal{D}_{\textit{poison}} = \{(x_{\textit{trigger}}, y_{\textit{payload}})\}$, where $x_{\textit{trigger}}$ denotes the trigger and $y_{\textit{payload}}$ denotes the target payload. We define $\mathcal{X}_{\textit{trigger}}$ and $\mathcal{Y}_{\textit{payload}}$ as the trigger and payload spaces respectively. Prior to poisoning, the model does not map triggers to payloads:
+
+\begin{equation}
+\mathcal{M}_\theta : \mathcal{X}_{\textit{trigger}} \cancel{\rightarrow} \mathcal{Y}_{\textit{payload}}
+\end{equation}
+
+where $\cancel{\rightarrow}$ denotes a mapping that does not hold. Following the SFT-based backdoor approach described in Section~\ref{subsec:threat_model}, the adversary trains on $\mathcal{D}_{\textit{poison}} \cup \mathcal{D}_{\textit{benign}}$ to produce a poisoned model $\mathcal{M}_p$ with parameters $\theta_p$, resulting in the backdoored mapping:
+
+\begin{equation}
+\mathcal{M}_{\theta_p} : \mathcal{X}_{\textit{trigger}} \rightarrow \mathcal{Y}_{\textit{payload}}
+\end{equation}
+
+After poisoning, let $f_{\theta_p}$ denote the overall input-output mapping of the poisoned model $\mathcal{M}_{\theta_p}$. The model maintains all prior mappings alongside the new adversarial one:
+
+\begin{equation}
+f_{\theta_p} : \mathcal{X}_{\mathcal{D}_{\textit{benign}}} \rightarrow \mathcal{Y}_{\mathcal{D}_{\textit{benign}}} \;;\; \mathcal{X}_{\mathcal{D}_u} \rightarrow \mathcal{Y}_{\mathcal{D}_u} \;;\; \mathcal{X}_{\mathcal{D}_{\textit{poison}}} \rightarrow \mathcal{Y}_{\mathcal{D}_{\textit{poison}}}
+\end{equation}
+
+while preserving the watermark, $\mathcal{S}(\mathcal{M}_p, k) = 1$.
+
+\medskip
+\noindent
+\textbf{Objectives.} Three objectives must be satisfied simultaneously.
+
+\textit{Detection.} Let $\mathcal{M}_s$ denote a suspect model, let $\mathcal{M}_{\textit{clean}}$ denote a clean baseline model, and let $\mathcal{D}_{\textit{probe}}$ denote probe data constructed with synthetic triggers. The goal is to construct a detection function $\mathcal{F}$ that determines whether $\mathcal{M}_s$ is backdoored:
+
+\begin{equation}
+\mathcal{F}(\mathcal{M}_s, \mathcal{M}_{\textit{clean}}, \mathcal{D}_{\textit{probe}}) \rightarrow \{0, 1\}
+\end{equation}
+
+where $\mathcal{F}$ returns 1 if $\mathcal{M}_s$ is detected as backdoored, and 0 otherwise.
+
+\textit{Backdoor Removal.} If $\mathcal{F}(\mathcal{M}_s, \cdot, \cdot) = 1$, construct a defense function $\mathcal{G}$ such that the cleaned model $\mathcal{M}_{\theta'} = \mathcal{G}(\mathcal{M}_s, \mathcal{D}_{\textit{benign}})$, with parameters $\theta'$, satisfies:
+
+\begin{equation}
+\mathcal{M}_{\theta'} : \mathcal{X}_{\textit{benign}} \rightarrow \mathcal{Y}_{\textit{benign}} \;;\; \mathcal{X}_u \rightarrow \mathcal{Y}_u \;;\; \mathcal{X}_{\textit{trigger}} \cancel{\rightarrow} \mathcal{Y}_{\textit{payload}}
+\end{equation}
+
+\textit{Watermark Preservation.} The defense function $\mathcal{G}$ must preserve the watermark signature:
+
+\begin{equation}
+\mathcal{S}(\mathcal{M}_{\theta'}, k) = \mathcal{S}(\mathcal{M}_\theta, k) = 1
+\end{equation}
+
+ensuring that the cleaned model $\mathcal{M}_{\theta'}$ retains verifiable ownership proof identical to the original watermarked model $\mathcal{M}_\theta$.
+
+\medskip
+\noindent
+\textbf{Goals.} Beyond the three objectives above, we impose two efficiency goals.
+
+\textit{Efficient Detection.} The detection function $\mathcal{F}$ should identify backdoored models in constant time, independent of vocabulary size, trigger patterns, and payload content:
+
+\begin{equation}
+\mathcal{F}(\mathcal{M}_s, \mathcal{M}_{\textit{clean}}, \mathcal{D}_{\textit{probe}}) \rightarrow \{0, 1\}
+\end{equation}
+
+where $\mathcal{F}$ returns 1 regardless of trigger type or payload characteristics, and the computational cost is $\mathcal{O}(1)$ with respect to vocabulary size.
+
+\textit{Defense with Watermark Preservation.} The defense function $\mathcal{G}$ should eliminate unknown backdoor mappings while preserving watermark verifiability:
+
+\begin{equation}
+\mathcal{M}_{\theta'} : \mathcal{X}_{\textit{trigger}} \cancel{\rightarrow} \mathcal{Y}_{\textit{payload}} \;\text{and}\; \mathcal{S}(\mathcal{M}_{\theta'}, k) = 1
+\end{equation}
+
+where the cleaned model $\mathcal{M}_{\theta'}$ breaks all trigger-payload associations while maintaining watermark verification.
+
+
+%% ============================================================
+\section{RePAIR: Interactive Machine Unlearning (IMU)}\label{sec:repair_problem}
+%% ============================================================
+
+This section formalizes the Interactive Machine Unlearning (IMU) problem setting, defining the setup under which a user can instruct an LLM to forget targeted knowledge through natural language during inference. This setting corresponds to the RePAIR framework.
+
+%% ------------------------------------------------------------
+\subsection{Problem Setting}\label{subsec:repair_ps}
+%% ------------------------------------------------------------
+
+We define the setup, objective, and constraints for user-initiated machine unlearning. Unlike the backdoor setting of Section~\ref{sec:backflush_problem}, which addresses an adversarial threat, IMU addresses an intrinsic retention problem in which the model has absorbed knowledge that a user wishes to remove.
+
+%% ------------------------------------------------------------
+\subsection{Setup}\label{subsec:repair_setup}
+%% ------------------------------------------------------------
+
+Let $\mathcal{M}_{\textit{patient}}$ denote a base language model pre-trained on dataset $\mathcal{D}$. The model maps prompts to responses through the function $f_{\mathcal{M}_{\textit{patient}}} : \mathcal{P}_{\mathcal{D}} \rightarrow \mathcal{R}_{\mathcal{D}}$, where $\mathcal{P}_{\mathcal{D}}$ and $\mathcal{R}_{\mathcal{D}}$ denote the prompt and response spaces of $\mathcal{M}_{\textit{patient}}$ over $\mathcal{D}$ respectively.
+
+Let $\mathcal{U}$ denote a user who interacts with $\mathcal{M}_{\textit{patient}}$ through prompt-response pairs $(p_t, r_t)$ at each conversational turn $t$, where $p_t$ is the user prompt and $r_t$ is the model response at turn $t$. Let $H_t = \{(p_{t-k}, r_{t-k}), \ldots, (p_t, r_t)\}$ denote the dialogue history over the last $k$ turns. Given $H_t$, the system must autonomously: (1) decide \textit{when} a user is requesting unlearning, (2) identify \textit{what} to unlearn by extracting the target pair $(p_f, r_f)$, (3) determine \textit{how} to unlearn by generating the appropriate repair procedure, and (4) perform unlearning on-the-fly during inference.
+
+Let $\mathcal{P}_f$ and $\mathcal{R}_f$ denote the forget prompt and response spaces respectively, where $p_f \in \mathcal{P}_f$ is an individual forget prompt and $r_f \in \mathcal{R}_f$ is its corresponding response. Similarly, let $\mathcal{P}_r$ and $\mathcal{R}_r$ denote the retain prompt and response spaces respectively, where $p_r \in \mathcal{P}_r$ is an individual retain prompt and $r_r \in \mathcal{R}_r$ is its corresponding response. Before unlearning, $\mathcal{M}_{\textit{patient}}$ maps both forget and retain prompts to their corresponding responses:
+
+\begin{equation}
+f_{\mathcal{M}_{\textit{patient}}} : \mathcal{P}_f \rightarrow \mathcal{R}_f \;;\; \mathcal{P}_r \rightarrow \mathcal{R}_r
+\label{eq:before_unlearn}
+\end{equation}
+
+%% ------------------------------------------------------------
+\subsection{Objective}\label{subsec:repair_objective}
+%% ------------------------------------------------------------
+
+Let $\mathcal{M}_{\textit{healed}}$ denote the model after unlearning has been performed, with mapping $f_{\mathcal{M}_{\textit{healed}}}$. The framework must transform $\mathcal{M}_{\textit{patient}}$ into $\mathcal{M}_{\textit{healed}}$ such that:
+
+\begin{equation}
+f_{\mathcal{M}_{\textit{healed}}} : \mathcal{P}_f \cancel{\rightarrow} \mathcal{R}_f \;;\; \mathcal{P}_r \rightarrow \mathcal{R}_r
+\label{eq:after_unlearn}
+\end{equation}
+
+where $\cancel{\rightarrow}$ denotes a forgotten mapping and $\rightarrow$ denotes a preserved mapping. Specifically, for all forget prompts the original mapping must not hold, $f_{\mathcal{M}_{\textit{healed}}}(p_f) \neq r_f \;\; \forall \, (p_f, r_f) \in \mathcal{D}_f$, and for all retain prompts the original mapping must be preserved, $f_{\mathcal{M}_{\textit{healed}}}(p_r) = r_r \;\; \forall \, (p_r, r_r) \in \mathcal{D}_r$.
+
+Here, $\mathcal{D}_f = \{(p_f, r_f)\}$ denotes the forget set containing the targeted knowledge to be removed, and $\mathcal{D}_r$ denotes a retain buffer comprising at most 10\% of $\mathcal{D} - \mathcal{D}_f$\footnote{Hereafter, $\mathcal{D}_r$ refers to this retain buffer ($\leq$10\% of $\mathcal{D} - \mathcal{D}_f$) unless stated otherwise.}.
+
+%% ------------------------------------------------------------
+\subsection{Constraints}\label{subsec:repair_constraints}
+%% ------------------------------------------------------------
+
+The above objective must be achieved under two constraints that distinguish IMU from conventional machine unlearning:
+
+\begin{enumerate}
+    \item \textbf{Training-free:} No gradient computation or backpropagation is permitted. This constraint arises because IMU operates at inference time, where GPU clusters are configured for forward-pass serving and lack the memory and compute budget required for backward-pass training.
+
+    \item \textbf{Single-sample:} The system must operate on a single target pair $(p_f, r_f)$ rather than requiring a batch of forget samples. This constraint arises because user requests arrive one at a time during conversational interaction, and batching is neither practical nor desirable from a user-experience perspective.
+\end{enumerate}
+
+These two constraints together exclude all existing unlearning methods reviewed in Chapter~\ref{chap:lit_review}, as none satisfies both simultaneously, establishing the need for a fundamentally different approach.

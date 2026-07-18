@@ -1,0 +1,73 @@
+\chapter{Discussion}
+\label{chap:discussion}
+
+This chapter discusses the key findings, design tradeoffs, and limitations of both proposed frameworks in light of the experimental results presented in Chapter~\ref{chap:experiments}.
+
+
+%% ============================================================
+\section{Discussion on BackFlush}\label{sec:disc_backflush}
+%% ============================================================
+
+\subsection{BackFlush-GA against BackFlush-RoPE Tradeoff}
+
+The experimental results in Table~\ref{tab:defense_comparison} reveal a clear tradeoff between the two BackFlush variants. BackFlush-GA achieves marginally lower ASR on some configurations, for example 1.36\% against 0.98\% on Mistral-7B, and higher CACC at 99.68\% against 98.58\%, but consistently fails to preserve watermarks across all three architectures. BackFlush-RoPE achieves comparable or better ASR, below 1\% across all architectures, while preserving watermarks, at the cost of slightly lower CACC in some cases. The utility gap is decisive, as BackFlush-RoPE maintains perplexity close to the clean baseline at approximately 6, while BackFlush-GA degrades utility to 10--11 perplexity. This tradeoff confirms that the unbounded gradient signal in GA, while effective for backdoor disruption, causes indiscriminate parameter degradation that damages both watermark subspaces and general model utility. RoPE's bounded rotation loss $\mathcal{L}_{\textit{rotate}} \in [0, 2]$ provides sufficient signal to flush backdoors while constraining the update magnitude to preserve other parameter structures.
+
+\subsection{Limitations of BackFlush}
+
+\noindent
+\textbf{Dependence on a clean baseline model.} The detection mechanism via Backdoor Susceptibility Amplification requires access to a clean baseline $\mathcal{M}_{\textit{clean}}$ for loss comparison. In practice, obtaining a verified clean model of the same architecture is feasible for popular open-source families such as Llama, Mistral, and Qwen, but may not generalize to proprietary or custom architectures where no trusted clean reference exists.
+
+\medskip
+\noindent
+\textbf{Auxiliary data selection.} BackFlush uses SciQ as $\mathcal{D}_{\textit{aux}}$ in all experiments. While the Backdoor Flushing Phenomenon is demonstrated to be robust across trigger types (Table~\ref{tab:poison_config}), the sensitivity of the framework to the choice of auxiliary dataset has not been exhaustively characterized. Different auxiliary domains may entangle with backdoor subspaces to varying degrees, potentially affecting removal efficacy.
+
+\medskip
+\noindent
+\textbf{SFT-only defense evaluation.} Although the threat model in Chapter~\ref{chap:threat_model} formalizes SFT-based, RLHF-based, and editing-based backdoor vectors, the experimental evaluation focuses on SFT-based poisoning. The generalization of the Backdoor Flushing Phenomenon to RLHF-corrupted reward models and editing-based weight transplants remains to be validated empirically.
+
+\medskip
+\noindent
+\textbf{Detection threshold sensitivity.} The detection function $\mathcal{F}$ relies on a threshold $\tau$ to distinguish backdoored from clean models. While Figure~\ref{fig:backdoor_detection}(b) demonstrates consistent detection gaps across varying backdoor counts, the optimal setting of $\tau$ and its robustness to edge cases, such as models with very few or very subtle backdoors, requires further investigation.
+
+
+%% ============================================================
+\section{Discussion on RePAIR}\label{sec:disc_repair}
+%% ============================================================
+
+\subsection{Effectiveness of Training-Free Unlearning}
+
+The single-sample ablation (Table~\ref{tab:single_sample}) provides the strongest validation of STAMP's design. All six training-based baselines fail completely when $|\mathcal{D}_f| = 1$, with $Acc_f$ remaining at 100, while STAMP and STAMP-LR achieve $Acc_f = 0.00$ with $Acc_r > 70$. This confirms that the gradient signal bottleneck is not a tuning problem but a fundamental limitation of gradient-based unlearning under single-sample conditions. STAMP's closed-form pseudoinverse update bypasses this bottleneck entirely, making it the only viable mechanism for the interactive setting where user requests arrive individually.
+
+\subsection{Limitations of RePAIR}
+
+\noindent
+\textbf{Retain data at inference time.} Although STAMP operates with as little as a 10\% retain ratio (Table~\ref{tab:retain_ratio}), it still requires a small replay buffer $\mathcal{D}_r$ to preserve retained knowledge. Storing this buffer on edge devices at inference time is non-trivial and may conflict with GDPR and CCPA data minimization constraints. Methods such as FLAT~\citeauthor{wang2024llm} operate using only $\mathcal{D}_f$ without any replay buffer, suggesting a direction toward fully retain-free unlearning.
+
+\medskip
+\noindent
+\textbf{Resource constraints at test time.} As shown in Table~\ref{tab:cost_comparison}, training-based methods require significantly more GPU memory than is typically available at inference. While STAMP-LR substantially reduces computational cost from $\mathcal{O}(d^3)$ to $\mathcal{O}(r^3 + r^2 \cdot d)$, the framework currently operates on text-only LLMs. Extending to multimodal models with larger hidden dimensions and additional modality-specific layers would increase compute requirements.
+
+\medskip
+\noindent
+\textbf{Pipeline orchestration overhead.} The turnaround times in Table~\ref{tab:repair_pipeline} of 9.36 and 6.50 minutes exceed the standalone STAMP execution times in Table~\ref{tab:STAMP-Comparison} due to the overhead of multi-model orchestration, namely $\mathcal{M}_{\textit{watchdog}}$ intent detection and $\mathcal{M}_{\textit{surgeon}}$ code generation. For truly interactive deployments, optimizing the pipeline latency through model distillation or co-location of the three models would be necessary.
+
+\medskip
+\noindent
+\textbf{Layer selection generality.} The ablation in Figure~\ref{fig:layer_divergence} identifies Layer~7 of Llama-3-8B as the optimal intervention point based on cosine divergence. This selection is architecture-specific, as different models with different layer counts and representation structures may require re-running the divergence analysis to identify the appropriate intervention layer.
+
+
+%% ============================================================
+\section{On the Necessity of the Retain Buffer in Machine Unlearning}\label{sec:disc_retain}
+%% ============================================================
+
+Effective unlearning requires distinguishing what to forget from what to retain. This section investigates whether the forget data $\mathcal{D}_f$ or the retain buffer $\mathcal{D}_r$, a subset of the full retain data $\mathcal{D}_r^{\textit{full}}$, can be avoided, drawing on evidence from classification, face recognition, and generative tasks.
+
+We find that $\mathcal{D}_r$ is fundamentally unavoidable for preserving task-critical knowledge in non-convex models. Without architectural support such as modular pathways, all parameters are adjusted using both $\mathcal{D}_f$ and $\mathcal{D}_r^{\textit{full}}$ during pretraining, making disentanglement infeasible without access to $\mathcal{D}_r$.
+
+Only noise-based impair-and-repair methods~\citeauthor{tarun2023fast} and source-free unlearning~\citeauthor{ahmed2025towards} attempt to bypass data dependencies. The former still requires $\mathcal{D}_r$ during the repair phase. Source-free methods estimate retain-data Hessians using only $\mathcal{D}_f$ through semi-definite programming, but are limited to convex losses and linear classifiers, making them inapplicable to modern non-convex architectures such as transformers. In practice, they use frozen pre-trained feature extractors and unlearn only linear heads. While error bounds improve with dimensionality, Hessian storage and inversion become computationally prohibitive for large models.
+
+All established methods for non-convex models critically rely on $\mathcal{D}_r$. Weight-importance methods such as EWC~\citeauthor{kirkpatrick2017overcoming} and SALUN~\citeauthor{fan2023salun} compute Fisher information or saliency from $\mathcal{D}_r$ to protect retain-relevant weights. SCRUB~\citeauthor{kurmanji2023towards} and GS-LoRA~\citeauthor{zhao2024continual} explicitly leverage $\mathcal{D}_r$ to safeguard retained knowledge. Continual learning-based unlearning methods universally depend on $\mathcal{D}_r$, where LSF~\citeauthor{shibata2021learning} uses mnemonic codes, UnCLe~\citeauthor{adhikari2025unlearning} employs task embeddings, CLPU-DER++~\citeauthor{liu2022continual} maintains experience replay, and UniCLUN~\citeauthor{chatterjee2024unified} and UG-CLU~\citeauthor{huang2025unified} incorporate $\mathcal{D}_r$ for stability.
+
+Generative tasks present partial exceptions. FLAT~\citeauthor{wang2024llm} solves unlearning without $\mathcal{D}_r$ through f-divergence regularizers, while ESD~\citeauthor{gandikota2023erasing} avoids both $\mathcal{D}_f$ and $\mathcal{D}_r$ by using teacher models to generate synthetic samples. However, FLAT remains limited to batch-level forgetting and ESD requires access to a teacher model.
+
+In summary, while $\mathcal{D}_f$ can theoretically be avoided through noise-based proxies or source-free methods, no viable approach eliminates $\mathcal{D}_r$ dependence for non-convex deep learning without compromising retention performance. This finding contextualizes STAMP's retain buffer requirement not as a limitation specific to our method, but as a fundamental constraint of the machine unlearning problem in its current form.

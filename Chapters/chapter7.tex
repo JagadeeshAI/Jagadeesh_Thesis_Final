@@ -1,0 +1,84 @@
+\chapter{Conclusion and Future Work}
+\label{chap:conclusion}
+
+%% ============================================================
+\section{Research Summary}
+%% ============================================================
+
+This thesis developed two complementary machine unlearning frameworks addressing post-deployment threats in Large Language Models, namely adversarial backdoor poisoning and uncontrolled knowledge retention. The research tackled fundamental limitations of existing approaches, including reliance on known triggers, dependence on clean reference models, the requirement for training pipelines, and the inability to handle single-sample forgetting, through novel unlearning mechanisms that operate under minimal assumptions.
+
+Chapter~\ref{chap:threat_model} formalized both problem settings. For backdoor defense, the threat model covered SFT-based, RLHF-based, and editing-based attack vectors, with objectives spanning detection, elimination, and watermark preservation. For interactive unlearning, the IMU problem setting defined the constraints of training-free and single-sample operation during inference.
+
+Chapter~\ref{chap:method} presented the two proposed methods. BackFlush established two novel observations. The first is the \textit{Backdoor Flushing Phenomenon}, where injecting and unlearning auxiliary data eliminates pre-existing backdoors. The second is \textit{Backdoor Susceptibility Amplification}, which enables constant-time detection via initial loss comparison on probe data. The RoPE unlearning mechanism uses a bounded rotation loss $\mathcal{L}_{\textit{rotate}} \in [0, 2]$ to flush backdoors while preserving watermark integrity. RePAIR introduced STAMP, a training-free unlearning method that redirects MLP activations toward a refusal subspace via closed-form pseudoinverse updates, with STAMP-LR reducing cost from $\mathcal{O}(d^3)$ to $\mathcal{O}(r^3 + r^2 \cdot d)$.
+
+Chapter~\ref{chap:experiments} validated both frameworks. BackFlush achieved approximately 1\% ASR, approximately 99\% CACC, and preserved watermarks across Mistral-7B, Llama-3-8B, and Qwen-2.5-7B, outperforming seven state-of-the-art defenses. Trigger-type generalization confirmed below 1\% ASR across typos, repeated words, phrases, and patterns without modification. Detection validation demonstrated consistent loss gaps regardless of initial backdoor count. STAMP achieved near-zero forget scores, with $Acc_f = 0.00$ and $F\text{-}RL = 0.00$, while preserving retention, with $Acc_r$ up to 84.47 and $R\text{-}RL$ up to 0.88, outperforming six baselines across harmful knowledge suppression, misinformation correction, and personal data erasure. The single-sample ablation confirmed that all training-based baselines fail entirely at $|\mathcal{D}_f| = 1$, while STAMP achieves complete forgetting. The full RePAIR pipeline achieved above 96\% across all operational metrics with approximately 3$\times$ speedup over training-based methods.
+
+Chapter~\ref{chap:discussion} discussed design tradeoffs and limitations, including the BackFlush-GA against BackFlush-RoPE tradeoff, retain buffer requirements for STAMP, pipeline orchestration overhead, and the fundamental necessity of retain data in non-convex machine unlearning.
+
+
+%% ============================================================
+\section{Key Contributions}
+%% ============================================================
+
+\begin{itemize}
+    \item \textbf{BackFlush framework.} The first unified framework simultaneously achieving backdoor detection, elimination, and watermark preservation, requiring no prior knowledge of trigger patterns, payloads, or poisoning methodology.
+
+    \item \textbf{Constant-time backdoor detection.} Backdoor Susceptibility Amplification identifies compromised models in constant time independent of vocabulary size, orders-of-magnitude faster than existing linear-time methods.
+
+    \item \textbf{RoPE unlearning.} A rotation-based technique that preserves watermark signatures during backdoor elimination through bounded updates, validated across three LLM architectures.
+
+    \item \textbf{Interactive Machine Unlearning (IMU).} A new problem setting enabling end users to instruct LLMs to forget targeted knowledge through natural language during inference, eliminating dependency on model service providers.
+
+    \item \textbf{STAMP and STAMP-LR.} The first training-free, single-sample unlearning methods for LLMs operating entirely at test time, achieving near-oracle forgetting with LoRA-level memory footprint.
+
+    \item \textbf{RePAIR framework.} An end-to-end multi-model pipeline integrating intent detection ($\mathcal{M}_{\textit{watchdog}}$), code generation ($\mathcal{M}_{\textit{surgeon}}$), and autonomous model repair ($\mathcal{M}_{\textit{patient}}$), demonstrating practical interactive unlearning.
+\end{itemize}
+
+
+%% ============================================================
+\section{Limitations}
+%% ============================================================
+
+\begin{itemize}
+    \item \textbf{Clean baseline requirement.} BackFlush detection requires a clean reference model of the same architecture for loss comparison, which may not be available for proprietary or custom models.
+
+    \item \textbf{SFT-only evaluation.} BackFlush experiments focus on SFT-based poisoning, so generalization to RLHF-corrupted reward models and editing-based weight transplants remains unvalidated.
+
+    \item \textbf{Retain buffer at inference.} STAMP requires a small replay buffer $\mathcal{D}_r$, as low as 10\%, to preserve retained knowledge, which may conflict with data minimization principles on edge devices.
+
+    \item \textbf{Pipeline latency.} RePAIR turnaround times of 6.5--9.4 minutes include multi-model orchestration overhead, limiting truly real-time interactive deployment.
+
+    \item \textbf{Architecture-specific layer selection.} STAMP's optimal intervention layer, Layer~7 for Llama-3-8B, is identified via cosine divergence analysis and must be re-determined for different architectures.
+
+    \item \textbf{Text-only modality.} Both frameworks are validated on text-only LLMs, and extension to multimodal models with vision or audio encoders remains unexplored.
+\end{itemize}
+
+
+%% ============================================================
+\section{Future Work}
+%% ============================================================
+
+\begin{itemize}
+    \item \textbf{Backdoor removal in image generation.} Extending BackFlush to diffusion models and image generation architectures where backdoor poisoning produces adversarial visual outputs, adapting the Backdoor Flushing Phenomenon to continuous generative domains.
+
+    \item \textbf{Retain-free STAMP variants.} Developing STAMP variants that eliminate the retain buffer requirement entirely, drawing on f-divergence regularization approaches such as FLAT~\citeauthor{wang2024llm} or teacher-based synthetic sample generation.
+
+    \item \textbf{Multimodal patient models.} Extending RePAIR to multimodal LLMs processing vision, audio, and text, requiring adaptation of STAMP's MLP-targeted pseudoinverse updates to modality-specific layers and cross-modal attention.
+
+    \item \textbf{Fine-grained concept-level unlearning.} Supporting unlearning at the concept level beyond prompt-response pairs, enabling users to specify abstract knowledge categories for removal rather than individual data points.
+
+    \item \textbf{Pipeline latency optimization.} Reducing RePAIR turnaround time through model distillation of $\mathcal{M}_{\textit{watchdog}}$ and $\mathcal{M}_{\textit{surgeon}}$, co-location of pipeline components, and speculative execution of the unlearning procedure during intent detection.
+
+    \item \textbf{RLHF and editing-based backdoor defense.} Validating BackFlush against RLHF-corrupted reward models and editing-based weight transplant attacks, extending the experimental coverage to all three threat vectors formalized in the threat model.
+\end{itemize}
+
+
+%% ============================================================
+\section{Concluding Remarks}
+%% ============================================================
+
+This thesis addressed the absence of principled mechanisms for selective post-deployment knowledge correction in Large Language Models through two complementary frameworks. BackFlush demonstrated that unknown backdoors can be detected in constant time and eliminated without prior knowledge of triggers or payloads, while simultaneously preserving legitimate watermark signatures, a combination that no prior method achieves. RePAIR demonstrated that end users can exercise their GDPR and CCPA erasure rights directly through natural language, without training pipelines, retain-set curation, or technical expertise, a capability that no prior method supports.
+
+The fundamental contributions are twofold. First, the Backdoor Flushing Phenomenon and Backdoor Susceptibility Amplification establish new empirical principles for knowledge-free backdoor defense. Second, STAMP establishes that closed-form pseudoinverse updates can achieve effective unlearning where all gradient-based methods fail, opening a new class of training-free model modification at test time.
+
+Together, these frameworks take a step toward responsible AI deployment where models can be audited, sanitized, and corrected after deployment, by both providers and end users, without the prohibitive cost of retraining and without compromising intellectual property protections.

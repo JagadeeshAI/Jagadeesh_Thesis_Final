@@ -1,0 +1,116 @@
+\documentclass[12pt, twoside, openright, thesis]{settings/chthes}
+
+%% ============================================================
+%%  Packages
+%% ============================================================
+\usepackage{xltabular}
+\usepackage{natbib}
+\usepackage{nomencl}
+\usepackage[quotchapII]{settings/fncystyle}
+\usepackage{makecell}
+\usepackage{setspace}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{lscape}
+\setcounter{MaxMatrixCols}{20}
+\usepackage{caption}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+\usepackage{colortbl}
+\usepackage[table]{xcolor}
+\usepackage{cancel}
+\renewcommand{\arraystretch}{1.3}
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows}
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text width=3cm, text-centered, draw=black, fill=red!30]
+\tikzstyle{io} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text width=3cm, text-centered, draw=black, fill=blue!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, text width=3cm, draw=black, fill=orange!30]
+\usepackage{tcolorbox}
+\usepackage{fourier}
+\DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
+\usepackage{amsmath}
+\usepackage{adjustbox}
+\usepackage{multirow}
+
+%% ============================================================
+%%  Page style
+%% ============================================================
+\pagestyle{fancy}
+\usepackage{fancyhdr}
+\fancyhf{}
+\fancyhead[LO]{\nouppercase{\leftmark}}
+\fancyhead[RE]{\nouppercase{\rightmark}}
+\fancyfoot[CE,CO]{\thepage}
+\fancyfoot[LE,RO]{}
+\setlength{\headsep}{0.1in}
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{1pt}
+\graphicspath{{graphics/}}
+\hypersetup{colorlinks=true, citecolor=blue!80!black}
+\newcommand{\citeauth}[1]{\hyperlink{cite.#1}{\citeauthor{#1}}~[\citeyear{#1}]}
+
+%% ============================================================
+%%  Title page metadata
+%% ============================================================
+\title{\Huge Machine Unlearning and its Applications}
+\author{Jagadeesh Rachapudi}
+% \rollnum{S22026}
+\supervisor{Dr. Amit Shukla}
+\cosupervisor{Dr. Praful Hambarde}
+\deptartment{Center for Artificial Intelligence and Robotics}
+\university{Indian Institute of Technology Mandi}
+\submitiondate{June 2026}
+\logo{\includegraphics[width=0.4\linewidth]{logo.jpg}}
+\degreetype{Master of Technology (by Research)}
+
+\begin{document}
+
+%% ============================================================
+%%  Front matter
+%% ============================================================
+\frontmatter
+\maketitle                       % Title page
+
+\dedication[To Society]           % Dedication
+\addintoc{Dedication}
+
+\include{frontmatter/dec}        % Declaration
+\addintoc{Declaration}
+
+\include{frontmatter/ack}        % Acknowledgements
+\addintoc{Acknowledgments}
+
+\include{frontmatter/abs}        % Abstract
+\addintoc{Abstract}
+
+\begin{contentlist}              % Tables of contents
+\tableofcontents                 % Table of contents
+\listoffigures                   % List of figures
+\listoftables                    % List of tables
+\end{contentlist}
+
+%% ============================================================
+%%  Main matter
+%% ============================================================
+\mainmatter
+\onehalfspacing
+\include{Chapters/chapter1}
+\include{Chapters/chapter2}
+\include{Chapters/chapter3}
+\include{Chapters/chapter4}
+\include{Chapters/chapter5}
+\include{Chapters/chapter6}
+\include{Chapters/chapter7}
+
+%% ============================================================
+%%  Back matter
+%% ============================================================
+\backmatter
+\bibliographystyle{apalike}
+\bibliography{References/references}
+\include{backmatter/pub}         % List of publications
+
+\end{document}
