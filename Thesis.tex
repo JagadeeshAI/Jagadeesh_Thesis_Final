@@ -29,6 +29,39 @@
 \tikzstyle{arrow} = [thick,->,>=stealth]
 \tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, text width=3cm, draw=black, fill=orange!30]
 \usepackage{tcolorbox}
+\tcbuselibrary{listings, skins, breakable}
+\usepackage{listings}
+\definecolor{codebg}{RGB}{240,238,230}
+\definecolor{codekeyword}{RGB}{175,40,110}
+\definecolor{codecomment}{RGB}{40,140,80}
+\definecolor{codestring}{RGB}{35,110,140}
+\lstdefinestyle{pycode}{
+    language=Python,
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekeyword}\bfseries,
+    commentstyle=\color{codecomment}\itshape,
+    stringstyle=\color{codestring},
+    showstringspaces=false,
+    breaklines=true,
+    columns=fullflexible,
+    keepspaces=true,
+    tabsize=4,
+    xleftmargin=0pt,
+    framexleftmargin=0pt,
+}
+\newtcblisting{codebox}[1][]{
+    enhanced,
+    breakable,
+    listing only,
+    listing options={style=pycode},
+    colback=codebg,
+    colframe=black!35,
+    boxrule=0.4pt,
+    arc=1mm,
+    left=4mm, right=4mm, top=1mm, bottom=1mm,
+    #1
+}
 \usepackage{fourier}
 \DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
 \usepackage{amsmath}

@@ -248,7 +248,7 @@ STAMP eliminates this dependence entirely. Both variants require only a single f
 
 All reported STAMP and STAMP-LR results intervene at layer~6 of Llama-3-8B, with regularization coefficient $\lambda = 10^{-4}$ and default rank $r = 64$ for STAMP-LR. Listing~\ref{lst:stamp_code} sketches the three core routines: the steering vector of Equation~\ref{eq:steering_vector}, the STAMP pseudoinverse solve of Equations~\ref{eq:naive_inverse}--\ref{eq:pseudoinverse}, and the STAMP-LR sketched solve of Equations~\ref{eq:a_pseudo}--\ref{eq:lr_update}. The snippets are illustrative, with model loading, activation hooks, and evaluation omitted.
 
-\begin{verbatim}
+\begin{codebox}
 def steering_vector(model, D_ref, D_f):
     # mean MLP output over the refusal prompts
     mu_ref = mlp_outputs(model, D_ref).mean(0)
@@ -285,6 +285,6 @@ def stamp_lr(model, D_f, D_r, D_ref, r=64):
     # low-rank update (Eq. 9), O(r^3 + r^2 m)
     W_new = B_plus @ (A_plus @ O)
     set_down_proj(model, W_new)
-\end{verbatim}
+\end{codebox}
 \captionof{listing}{Code snippets for STAMP and STAMP-LR. Comments reference the corresponding equations, and helper routines for activation collection and weight replacement are omitted.}
 \label{lst:stamp_code}
