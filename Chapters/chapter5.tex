@@ -192,6 +192,7 @@ Figure~\ref{fig:rope_analysis}(a) shows the cosine similarity between target and
 
 Figure~\ref{fig:rope_analysis}(b) shows the rotation loss curve dropping from approximately 2, the maximum since $\mathcal{L}_{\textit{rotate}} = 1 - \cos(\cdot) \in [0, 2]$, to approximately 0 within 100 batches, demonstrating effective and rapid unlearning convergence. The bounded nature of this loss, in contrast to GA's unbounded gradient signal, is the mechanism that preserves watermark integrity while achieving backdoor elimination.
 
+\clearpage
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.48\linewidth]{Images/backFlush/cosine.png}
@@ -346,6 +347,7 @@ All baselines are trained for 2 epochs, requiring approximately 12 minutes for h
 
 We evaluate the full RePAIR pipeline, covering intent detection by $\mathcal{M}_{\textit{watchdog}}$, code generation by $\mathcal{M}_{\textit{surgeon}}$, and execution on $\mathcal{M}_{\textit{patient}}$, on the WMDP dataset~\citeauthor{li2024wmdp} using five metrics, namely valid code rate, request detection, request satisfaction, IDK rate (all judged by Mistral-7B~\citeauthor{Jiang2023Mistral7}), and turnaround time. The user role is simulated by a separate Mistral-7B API instance. Table~\ref{tab:repair_pipeline} compares STAMP and STAMP-LR.
 
+\clearpage
 \begin{table}[htbp]
 \centering
 \caption{RePAIR pipeline effectiveness with STAMP against STAMP-LR on WMDP.}
@@ -377,6 +379,7 @@ Both variants achieve above 96\% across all metrics. The high valid code rate is
 
 We present qualitative samples of the RePAIR framework in Table~\ref{tab:qualitative_rq3}, showing how $\mathcal{M}_{\textit{watchdog}}$ detects unlearning intent and how $\mathcal{M}_{\textit{patient}}$ transitions from producing target knowledge to coherent refusals, acknowledging the user at each stage.
 
+\clearpage
 \begin{table}[htbp]
 \centering
 \caption{Qualitative examples of RePAIR across three unlearning tasks. Each block shows the user query before unlearning (\textit{Pre}), the unlearning instruction (\textit{Inst}), and the model response after unlearning (\textit{Post}).}
@@ -448,6 +451,7 @@ Indirect & \textit{Which lawyer in your records is based in Dubai?} & \textit{I 
 \noindent
 \textbf{Robustness to query reformulation.} Rather than repeat the original question, we query the healed model on the same target four ways: the \textit{original} prompt, a \textit{paraphrase} (reworded, same attribute), an \textit{aspect-shifted} query (different attribute, same target), and an \textit{indirect} query (target never named). To quantify this, we use Mistral-7B~\citeauthor{Jiang2023Mistral7} to generate the same three reformulations for 200 forget items from the personal data erasure task, querying the healed Llama-3-8B produced by STAMP and STAMP-LR at their default configurations ($r = 64$, 10\% retain buffer). Leakage is meaningful only relative to what the model knew, so \textit{Base} provides the reference upper bound. Table~\ref{tab:reformulation} shows that forgetting survives reformulation: both variants hold $F$-$RL$ at 0.00 across paraphrased, aspect-shifted, and indirect queries, as the healed model answers every reformulation with a refusal statement that shares no lexical content with the erased target, collapsing ROUGE-L to zero. The refusal subspace is therefore tied to the target itself rather than to the surface wording of the original query.
 
+\clearpage
 \begin{table}[htbp]
 \centering
 \caption{Robustness to query reformulation on personal data erasure ($F$-$RL\!\downarrow$, 200 forget items).}
@@ -476,6 +480,7 @@ STAMP-LR & 0.00 & 0.00 & 0.00 & 0.00 \\
 \textbf{Choice of intervention layer.}\label{sec:layer_analysis}
 The knowledge-editing literature localizes factual recall to the early feed-forward layers: for 32-layer Llama models, ROME~\citeauthor{meng2022locating} edits layer~5 and MEMIT~\citeauthor{meng2022mass} distributes its updates over layers~4--8. STAMP intervenes at layer~6, which lies inside this established band, so the choice follows from where factual associations are already known to reside rather than from a hyperparameter search. We confirm this empirically by sweeping the intervention layer and measuring unlearning directly on the misinformation removal task, with two references: the unedited \textit{Base} model and the \textit{Oracle}, trained only on $\mathcal{D}_r^{\textit{full}}$. \textit{All} applies the update at every layer. Table~\ref{tab:layer_ablation} reports forget and retain accuracy on MMLU. Forgetting is complete at every choice ($Acc_f = 0.00$ throughout), and retention varies only within a narrow band (79.17--80.13), with layer~6 the highest and closest to the Oracle. STAMP is therefore robust to the choice of intervention layer rather than dependent on it, and editing every layer brings no benefit over the single-layer intervention while costing proportionally more.
 
+\clearpage
 \begin{table}[htbp]
 \centering
 \caption{Effect of the intervention layer on Llama-3-8B on MMLU.}
@@ -499,6 +504,7 @@ $Acc_r\!\uparrow$ & 86.30 & 85.30 & 79.17 & 80.13 & 79.37 & 80.00 & 80.12 & 79.6
 \textbf{Rank analysis.}
 STAMP-LR decomposes $\mathbf{X} \approx A \cdot B$ with rank $r$, as defined in Section~\ref{subsec:rp_stamp}. Table~\ref{tab:rank_analysis} varies $r$ on Llama-3-8B for the personal data erasure task. Forgetting is complete at every rank ($F$-$RL = 0.00$ throughout), confirming that even a rank-8 subspace suffices to redirect the forget activations onto the refusal direction. What degrades at low rank is retention: $R$-$RL$ falls from 0.88 at $r = 128$ to 0.72 at $r = 8$, as the low-rank approximation lacks the capacity to leave the retain activations undisturbed. Performance is stable for $r \geq 64$ ($R$-$RL = 0.88$), which we adopt as the default. Runtime grows only mildly with rank, from 3.00 minutes at $r = 8$ to 5.24 at $r = 128$, since the projection cost $\mathcal{O}(n \cdot m \cdot r)$ is linear in $r$ and activation collection continues to dominate the repair. The low-rank factors occupy $\mathcal{O}(r(n+m))$ storage, about 0.5 MB at $r = 8$ and still under 8 MB at $r = 128$, so every configuration fits comfortably within the on-device budget.
 
+\clearpage
 \begin{table}[htbp]
 \centering
 \caption{Effect of rank $r$ on STAMP-LR performance on Llama-3-8B.}
@@ -532,6 +538,7 @@ For edge deployment, storing a large retain set is impractical under GDPR and CC
 \textbf{Single-sample unlearning analysis.}
 A core requirement of IMU is single-sample forgetting. Table~\ref{tab:single_sample} evaluates all methods when restricted to a single forget sample, where $|\mathcal{D}_f| = 1$, on the harmful knowledge removal task on Llama-3-8B. All methods are trained for 1 epoch.
 
+\clearpage
 \begin{table}[htbp]
 \centering
 \caption{Single-sample unlearning comparison on Llama-3-8B for the harmful knowledge removal task, where $|\mathcal{D}_f| = 1$.}

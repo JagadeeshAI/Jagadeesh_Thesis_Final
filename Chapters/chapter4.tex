@@ -288,3 +288,5 @@ def stamp_lr(model, D_f, D_r, D_ref, r=64):
 \end{codebox}
 \captionof{listing}{Code snippets for STAMP and STAMP-LR. Comments reference the corresponding equations, and helper routines for activation collection and weight replacement are omitted.}
 \label{lst:stamp_code}
+
+Together, BackFlush and RePAIR address the two proposed applications from complementary angles, one sanitizing third-party models against hidden backdoors while preserving watermarks, and the other giving end users direct, training-free control over what a deployed model retains. The following chapter reports the experimental validation of both frameworks.

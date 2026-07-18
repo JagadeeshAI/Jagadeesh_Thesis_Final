@@ -55,6 +55,7 @@ The G-effect diagnostic, alongside \emph{Weighted Gradient Ascent} (WGA) which a
 
 Backdoor detection methods for language models primarily rely on monitoring abnormal behaviors exhibited by poisoned models during inference or fine-tuning.
 
+\clearpage
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{Images//LR/LR4.png}
@@ -100,6 +101,7 @@ These methods share two fundamental drawbacks, namely reliance on verified clean
 
 \emph{BEEAR} was proposed by~\citeauthor{zeng2024beear} and identifies universal embedding perturbations that elicit harmful behaviors and fine-tunes the model using contrastive safe responses. BEEAR avoids clean model dependency but requires defenders to accurately anticipate target payloads. When payloads deviate from anticipated forms, defense effectiveness drops significantly.
 
+\clearpage
 \begin{figure}
     \centering
     \includegraphics[width=0.5\linewidth]{Images//LR/LR6.png}
@@ -111,6 +113,7 @@ These methods share two fundamental drawbacks, namely reliance on verified clean
 
 No existing defense method simultaneously achieves backdoor elimination and watermark preservation, as summarized in Table~\ref{tab:backdoor_defense}. The final row of the table corresponds to our proposed framework, and full details of this method are presented in Chapter~\ref{chap4}.
 
+\clearpage
 \begin{table}[t]
 \centering
 \caption{Comparison of backdoor defense methods in terms of detection, defense capability, and watermark preservation. The highlighted final row corresponds to our proposed framework, presented in full in Chapter~\ref{chap4}.}
