@@ -13,11 +13,11 @@ Machine unlearning methods aim to selectively remove the influence of targeted d
 
 
 
-Gradient Ascent (\emph{GA}), shown in Figure~\ref{fig:LR1}, was introduced by~\citeauthor{yao2024large} and operates on forget samples paired with gradient descent on retain samples. GA directly maximizes the loss on data to be forgotten, pushing the model away from memorized associations. However, the diverse nature of LLM training corpora makes retain set collection intractable in practice. Without a comprehensive retain set, GA erodes model utility broadly, causing catastrophic forgetting of knowledge far beyond the targeted forget set.
+Gradient Ascent (\emph{GA}) was introduced by~\citeauthor{yao2024large} and operates on forget samples paired with gradient descent on retain samples. GA directly maximizes the loss on data to be forgotten, pushing the model away from memorized associations. However, the diverse nature of LLM training corpora makes retain set collection intractable in practice. Without a comprehensive retain set, GA erodes model utility broadly, causing catastrophic forgetting of knowledge far beyond the targeted forget set.
 
 \emph{Negative Preference Optimization} (NPO), a Direct Preference Optimization-inspired objective that slows GA's divergence exponentially through adaptive gradient weighting, was proposed by~\citeauthor{zhang2024negative} NPO addresses the catastrophic forgetting symptom by decelerating the forgetting process, yet it inherits GA at its core. The fundamental vulnerability to unsampled knowledge erosion remains, as knowledge not represented in the retain set is still subject to collateral degradation.
 
-The WMDP benchmark for evaluating hazardous knowledge removal, alongside \emph{Representation Misdirection for Unlearning} (RMU) shown in Figure~\ref{fig:LR2}, was introduced by~\citeauthor{li2024wmdp} RMU shifts forget-set activations toward a random unit vector in representation space while anchoring retain activations at their original positions. The method effectively disrupts targeted knowledge but produces incoherent gibberish on forget queries rather than clean, interpretable refusals, a significant limitation for user-facing deployments where the model's response to forgotten content must itself be appropriate.
+The WMDP benchmark for evaluating hazardous knowledge removal, alongside \emph{Representation Misdirection for Unlearning} (RMU), was introduced by~\citeauthor{li2024wmdp} RMU shifts forget-set activations toward a random unit vector in representation space while anchoring retain activations at their original positions. The method effectively disrupts targeted knowledge but produces incoherent gibberish on forget queries rather than clean, interpretable refusals, a significant limitation for user-facing deployments where the model's response to forgotten content must itself be appropriate.
 
 \emph{Forget data only Loss Adjustment} (FLAT), which maximizes f-divergence between template responses and forget responses using only forget data and thereby eliminates the need for a curated retain set, was proposed by~\citeauthor{wang2024llm} While this removes a practical bottleneck, FLAT is designed for batch-level forgetting over multiple samples and training epochs. When applied to a single data point, the f-divergence signal is insufficient to drive meaningful parameter updates, rendering the method ineffective for fine-grained or per-sample forgetting.
 
@@ -41,7 +41,7 @@ The G-effect diagnostic, alongside \emph{Weighted Gradient Ascent} (WGA) which a
 
 Backdoor detection methods for language models primarily rely on monitoring abnormal behaviors exhibited by poisoned models during inference or fine-tuning.
 
-\emph{ConfGuard}, shown in Figure~\ref{fig:LR4}, was proposed by~\citeauthor{wang2025confguard} and detects backdoor triggers by monitoring unusually high prediction confidence, based on the assumption that poisoned models respond to triggers with excessive certainty. While effective in narrow settings, ConfGuard becomes impractical when searching over large vocabularies, as the detection cost scales linearly with vocabulary size. Furthermore, when multiple payloads are associated with a single trigger, the confidence signal becomes ambiguous, degrading detection reliability.
+\emph{ConfGuard} was proposed by~\citeauthor{wang2025confguard} and detects backdoor triggers by monitoring unusually high prediction confidence, based on the assumption that poisoned models respond to triggers with excessive certainty. While effective in narrow settings, ConfGuard becomes impractical when searching over large vocabularies, as the detection cost scales linearly with vocabulary size. Furthermore, when multiple payloads are associated with a single trigger, the confidence signal becomes ambiguous, degrading detection reliability.
 
 \emph{POTS} (Proof-of-Training-Steps), which periodically fine-tunes model checkpoints on clean data and detects backdoors by analyzing weight drift across training iterations, was introduced by~\citeauthor{seddik2025pots} However, POTS implicitly normalizes early-stage poisoning as benign behavior, since weight drift during initial training is expected regardless of poisoning. Consequently, POTS fails to detect backdoors injected after initial training phases, a significant blind spot given that editing-based and post-hoc poisoning attacks operate precisely in this regime.
 
@@ -82,14 +82,14 @@ These methods share two fundamental drawbacks, namely reliance on verified clean
 \emph{LocPhylax} was introduced by~\citeauthor{lin2025backdoor} and injects synthetic triggers into the suspect model and then unlearns them, expecting that the unlearning process removes original backdoors simultaneously. However, the assumption that synthetic trigger unlearning transfers to unknown original backdoors has not been validated empirically. LocPhylax achieves incomplete removal with approximately 13--27\% residual ASR across architectures.
 
 
-No existing defense method simultaneously achieves backdoor elimination and watermark preservation, as summarized in Table~\ref{tab:backdoor_defense}. The final row of the table corresponds to our proposed framework, and full details of this method are presented in Chapter~\ref{chap4}.
+No existing defense method simultaneously achieves backdoor elimination and watermark preservation, as summarized in Table~\ref{tab:backdoor_defense}. The final row of the table corresponds to our proposed framework, and full details of this method are presented in Chapter~\ref{chap:method}.
 
 
 
 
 \begin{table}[htbp]
 \centering
-\caption{Comparison of backdoor defense methods in terms of detection, defense capability, and watermark preservation. The highlighted final row corresponds to our proposed framework, presented in full in Chapter~\ref{chap4}.}
+\caption{Comparison of backdoor defense methods in terms of detection, defense capability, and watermark preservation. The highlighted final row corresponds to our proposed framework, presented in full in Chapter~\ref{chap:method}.}
 \label{tab:backdoor_defense}
 \small
 \renewcommand{\arraystretch}{1.3}
