@@ -416,9 +416,37 @@ We present qualitative samples of the RePAIR framework in Table~\ref{tab:qualita
 
 For personal data erasure, the model transitions from reproducing full biographical details to a complete refusal. For harmful knowledge removal, the model shifts from providing specific technical answers to an epistemic refusal. For misinformation correction, the model moves from confidently stating incorrect information to expressing appropriate uncertainty. In all three cases, the post-unlearning responses are coherent and contextually appropriate, confirming that STAMP produces clean refusals rather than incoherent gibberish.
 
+Table~\ref{tab:qualitative_reformulation} traces a single personal data erasure request end to end: $\mathcal{M}_{\textit{watchdog}}$ detects the unlearning intent, the system executes the repair, and $\mathcal{M}_{\textit{patient}}$ acknowledges the request explicitly. Rather than repeat the original question, the same target is then queried four ways, the original prompt, a paraphrase, an aspect-shifted query, and an indirect query that never names the target. The healed model refuses all four, including the indirect query, showing that the refusal is tied to the underlying target rather than to the surface wording used to ask about it.
+
+\begin{table}[htbp]
+\centering
+\caption{Qualitative example of RePAIR on personal data erasure, including robustness to query reformulation.}
+\label{tab:qualitative_reformulation}
+\small
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{p{2.6cm}|p{5.3cm}|p{5.3cm}}
+\toprule
+\textbf{Stage} & \textbf{User} & \textbf{Model Response} \\
+\midrule
+Before unlearning & \textit{Tell me about Maya Taylor.} & \textit{Maya Taylor is a 32-year-old lawyer based in Dubai\ldots} \\
+\rowcolor{gray!15}
+Unlearn request & \textit{Forget everything about Maya Taylor.} & \textit{Done. Information related to Maya Taylor has been removed.} \\
+\midrule
+\multicolumn{3}{c}{\textit{After unlearning, the same target is queried four ways}} \\
+\midrule
+Original & \textit{Tell me about Maya Taylor.} & \textit{I'm unable to provide information about Maya Taylor.} \\
+\rowcolor{gray!15}
+Paraphrase & \textit{Who is Maya Taylor, and what does she do?} & \textit{I don't have any information about that person.} \\
+Aspect-shift & \textit{Which city is Maya Taylor based in?} & \textit{I don't know.} \\
+\rowcolor{gray!15}
+Indirect & \textit{Which lawyer in your records is based in Dubai?} & \textit{I cannot recall the name.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \medskip
 \noindent
-\textbf{Robustness to query reformulation.} Rather than repeat the original question, we query the healed model on the same target four ways: the \textit{original} prompt, a \textit{paraphrase} (reworded, same attribute), an \textit{aspect-shifted} query (different attribute, same target), and an \textit{indirect} query (target never named). To quantify this, we use Mistral-7B~\citeauthor{Jiang2023Mistral7} to generate the same three reformulations for 200 forget items from the personal data erasure task, querying the healed Llama-3-8B produced by STAMP and STAMP-LR at their default configurations ($r = 64$, 10\% retain buffer). Leakage is meaningful only relative to what the model knew, so \textit{Base} provides the reference upper bound; the \textit{Oracle} never saw $\mathcal{D}_f$, so its forget-side scores are not evaluated (N/A). Table~\ref{tab:reformulation} shows that forgetting survives reformulation: both variants hold $F$-$RL$ at 0.00 across paraphrased, aspect-shifted, and indirect queries, as the healed model answers every reformulation with a refusal statement that shares no lexical content with the erased target, collapsing ROUGE-L to zero. The refusal subspace is therefore tied to the target itself rather than to the surface wording of the original query.
+\textbf{Robustness to query reformulation.} Rather than repeat the original question, we query the healed model on the same target four ways: the \textit{original} prompt, a \textit{paraphrase} (reworded, same attribute), an \textit{aspect-shifted} query (different attribute, same target), and an \textit{indirect} query (target never named). To quantify this, we use Mistral-7B~\citeauthor{Jiang2023Mistral7} to generate the same three reformulations for 200 forget items from the personal data erasure task, querying the healed Llama-3-8B produced by STAMP and STAMP-LR at their default configurations ($r = 64$, 10\% retain buffer). Leakage is meaningful only relative to what the model knew, so \textit{Base} provides the reference upper bound. Table~\ref{tab:reformulation} shows that forgetting survives reformulation: both variants hold $F$-$RL$ at 0.00 across paraphrased, aspect-shifted, and indirect queries, as the healed model answers every reformulation with a refusal statement that shares no lexical content with the erased target, collapsing ROUGE-L to zero. The refusal subspace is therefore tied to the target itself rather than to the surface wording of the original query.
 
 \begin{table}[htbp]
 \centering
@@ -433,9 +461,7 @@ For personal data erasure, the model transitions from reproducing full biographi
 \midrule
 Base & 0.87 & 0.84 & 0.79 & 0.61 \\
 \rowcolor{gray!15}
-Oracle & N/A & N/A & N/A & N/A \\
 STAMP & 0.00 & 0.00 & 0.00 & 0.00 \\
-\rowcolor{gray!15}
 STAMP-LR & 0.00 & 0.00 & 0.00 & 0.00 \\
 \bottomrule
 \end{tabular}
@@ -448,7 +474,7 @@ STAMP-LR & 0.00 & 0.00 & 0.00 & 0.00 \\
 
 \noindent
 \textbf{Choice of intervention layer.}\label{sec:layer_analysis}
-The knowledge-editing literature localizes factual recall to the early feed-forward layers: for 32-layer Llama models, ROME~\citeauthor{meng2022locating} edits layer~5 and MEMIT~\citeauthor{meng2022mass} distributes its updates over layers~4--8. STAMP intervenes at layer~6, which lies inside this established band, so the choice follows from where factual associations are already known to reside rather than from a hyperparameter search. We confirm this empirically by sweeping the intervention layer and measuring unlearning directly on the misinformation removal task, with two references: the unedited \textit{Base} model and the \textit{Oracle}, trained only on $\mathcal{D}_r^{\textit{full}}$; \textit{All} applies the update at every layer. Table~\ref{tab:layer_ablation} reports forget and retain accuracy on MMLU. Forgetting is complete at every choice ($Acc_f = 0.00$ throughout), and retention varies only within a narrow band (79.17--80.13), with layer~6 the highest and closest to the Oracle. STAMP is therefore robust to the choice of intervention layer rather than dependent on it, and editing every layer brings no benefit over the single-layer intervention while costing proportionally more.
+The knowledge-editing literature localizes factual recall to the early feed-forward layers: for 32-layer Llama models, ROME~\citeauthor{meng2022locating} edits layer~5 and MEMIT~\citeauthor{meng2022mass} distributes its updates over layers~4--8. STAMP intervenes at layer~6, which lies inside this established band, so the choice follows from where factual associations are already known to reside rather than from a hyperparameter search. We confirm this empirically by sweeping the intervention layer and measuring unlearning directly on the misinformation removal task, with two references: the unedited \textit{Base} model and the \textit{Oracle}, trained only on $\mathcal{D}_r^{\textit{full}}$. \textit{All} applies the update at every layer. Table~\ref{tab:layer_ablation} reports forget and retain accuracy on MMLU. Forgetting is complete at every choice ($Acc_f = 0.00$ throughout), and retention varies only within a narrow band (79.17--80.13), with layer~6 the highest and closest to the Oracle. STAMP is therefore robust to the choice of intervention layer rather than dependent on it, and editing every layer brings no benefit over the single-layer intervention while costing proportionally more.
 
 \begin{table}[htbp]
 \centering

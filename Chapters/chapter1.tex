@@ -68,14 +68,14 @@ The accumulation of privacy failures prompted legislative intervention. Two land
 % ---- FIGURE and TABLE for GPT-2 breakdown, placed together near the GPT-2 paragraph ----
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.65\textwidth]{Images/intro/Pie_Chart.png}
-\caption{Categorical breakdown of 604 memorized training examples extracted from GPT-2~\citeauthor{carlini2021extracting} High-risk PII categories (named individuals, contact information, pseudonyms) account for 15.4\% of all memorized samples.}
+\includegraphics[width=0.75\textwidth]{Images/intro/Pie_Chart.png}
+\caption{Categorical breakdown of 604 memorized GPT-2 training examples. High-risk PII categories account for 15.4\%~\citeauthor{carlini2021extracting}}
 \label{fig:gpt2_pii}
 \end{figure}
 
 \begin{table}[htbp]
 \centering
-\caption{Breakdown of GPT-2 memorized examples; highlighted rows are PII-bearing categories~\citeauthor{carlini2021extracting}.}
+\caption{Breakdown of GPT-2 memorized examples. Highlighted rows are PII-bearing categories~\citeauthor{carlini2021extracting}.}
 \label{tab:gpt2_memorized}
 \begin{tabular}{lrc}
 \toprule
@@ -138,7 +138,7 @@ WhatsApp (Ireland) & 2021 & 225 & Transparency failures \\
 % ---- TABLE: Training Cost ----
 \begin{table}[htbp]
 \centering
-\caption{Training cost, carbon footprint, and freshwater use of large foundation models. Values are compiled from model cards, sustainability reports, and subsequent analyses; water figures depend on data-center cooling infrastructure.}
+\caption{Training cost, carbon footprint, and freshwater use of large foundation models. Values are compiled from model cards, sustainability reports, and subsequent analyses. Water figures depend on data-center cooling infrastructure.}
 \label{tab:training_cost}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrr}
@@ -160,7 +160,7 @@ Taken together, these four constraints make retraining untenable as a routine er
 % ---- TABLE: Retraining vs Unlearning Cost (Llama-3-8B), placed after the paragraph that interprets it ----
 \begin{table}[htbp]
 \centering
-\caption{Cost comparison between full retraining and machine unlearning (GA, LoRA) for Llama-3-8B. Carbon footprint is derived from Meta's published model card; cost and water figures are estimated.}
+\caption{Cost comparison between full retraining and machine unlearning (GA, LoRA) for Llama-3-8B. Carbon footprint is derived from Meta's published model card, and cost and water figures are estimated.}
 \label{tab:retrain_vs_unlearn_llama3}
 \renewcommand{\arraystretch}{1.5}
 \setlength{\tabcolsep}{12pt}
@@ -228,7 +228,7 @@ The threat is compounded by two structural features. First, triggers require onl
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.75\textwidth]{Images/backFlush/BackFlush-Page-2.drawio.png}
-\caption{Mechanisam of BackFlush detection and defence}
+\caption{Overview of BackFlush detection and defense mechanism.}
 \label{fig:backflush_image1}
 \end{figure}
 
@@ -243,21 +243,21 @@ The problem is structurally deeper than a usability gap. All existing unlearning
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{Images/RePAIR/interactive-Page-1.drawio.png}
-\caption{Motivating example for Interactive Machine Unlearning (IMU). \textit{Left:} Without IMU, the model retains personal data across sessions despite the user's request to unlearn. \textit{Right:} With IMU, the model autonomously removes the personal data and produces a refusal response in subsequent interactions.}
+\includegraphics[width=0.75\linewidth]{Images/RePAIR/interactive-Page-1.drawio.png}
+\caption{Motivating example for IMU: without it the model retains personal data across sessions, with it the model unlearns and refuses on request.}
 \label{fig:imu_image1}
 \end{figure}
 
+Now consider what a reliable machine unlearning method designed for inference time would enable. A user could directly instruct the model, through ordinary conversation, to forget their personal data, and receive confirmation that the instruction was carried out, as illustrated in Figure~\ref{fig:imu_image1}. A fact-checker could correct a specific misinformation association the model has encoded without retraining. A safety auditor could suppress a harmful knowledge pathway discovered post-deployment, immediately and without provider intervention. In each case the unlearning must be precise enough not to degrade unrelated capabilities, fast enough to complete within an interactive session, and robust enough to work from a single data point.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{Images/RePAIR/interactive-Page-2.drawio.png}
-\caption{Conceptual illustration of RePAIR. $\mathcal{M}_{\mathrm{\textbf{\textit{surgeon}}}}$ repairs 
-$\mathcal{M}_{\mathrm{\textbf{\textit{patient}}}}$ (\textit{left}) using STAMP, transforming it into 
-$\mathcal{M}_{\mathrm{\textbf{\textit{healed}}}}$ (\textit{right}).}
+\includegraphics[width=0.75\linewidth]{Images/RePAIR/interactive-Page-2.drawio.png}
+\caption{Conceptual illustration of RePAIR: $\mathcal{M}_{\textit{surgeon}}$ repairs $\mathcal{M}_{\textit{patient}}$ into $\mathcal{M}_{\textit{healed}}$ using STAMP.}
 \label{fig:repair_image2}
 \end{figure}
 
-Now consider what a reliable machine unlearning method designed for inference time would enable. A user could directly instruct the model, through ordinary conversation, to forget their personal data, and receive confirmation that the instruction was carried out, as illustrated in Figure~\ref{fig:imu_image1}. A fact-checker could correct a specific misinformation association the model has encoded without retraining. A safety auditor could suppress a harmful knowledge pathway discovered post-deployment, immediately and without provider intervention. In each case the unlearning must be precise enough not to degrade unrelated capabilities, fast enough to complete within an interactive session, and robust enough to work from a single data point. A conceptual illustration of this repair process is shown in Figure~\ref{fig:repair_image2}. The privacy rights mandated by GDPR~\citeauthor{protection2018general} and CCPA~\citeauthor{bonta2022california} would become directly exercisable by the individuals they protect, rather than mediated by opaque institutional processes. This defines the second problem this thesis addresses.
+A conceptual illustration of this repair process is shown in Figure~\ref{fig:repair_image2}. The privacy rights mandated by GDPR~\citeauthor{protection2018general} and CCPA~\citeauthor{bonta2022california} would become directly exercisable by the individuals they protect, rather than mediated by opaque institutional processes. This defines the second problem this thesis addresses.
 
 %% ============================================================
 \section{Proposed Solutions}\label{sec:proposed}

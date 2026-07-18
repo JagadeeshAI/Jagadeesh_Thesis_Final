@@ -14,8 +14,8 @@ Machine unlearning methods aim to selectively remove the influence of targeted d
 
 \begin{figure}
     \centering
-    \includegraphics[width=1.0\linewidth]{Images//LR/LR1.png}
-    \caption{\textcolor{red}{Harmful content warning.} Overview of our setting of LLM unlearning with the application of removing harmful responses}
+    \includegraphics[width=0.75\linewidth]{Images//LR/LR1.png}
+    \caption{\textcolor{red}{Harmful content warning.} LLM unlearning setting for removing harmful responses.}
     \label{fig:LR1}
 \end{figure}
 
@@ -25,8 +25,8 @@ Gradient Ascent (\emph{GA}), shown in Figure~\ref{fig:LR1}, was introduced by~\c
 
 \begin{figure}
     \centering
-    \includegraphics[width=1\linewidth]{Images/LR/LR2.png}
-    \caption{The WMDP Benchmark. WMDP is a dataset of 3,668 multiple-choice questions that serve as a proxy measure of hazardous knowledge in biosecurity, cybersecurity, and chemical security.}
+    \includegraphics[width=0.75\linewidth]{Images/LR/LR2.png}
+    \caption{The WMDP benchmark: 3,668 multiple-choice questions proxying hazardous knowledge.}
     \label{fig:LR2}
 \end{figure}
 
@@ -39,8 +39,8 @@ The G-effect diagnostic, alongside \emph{Weighted Gradient Ascent} (WGA) which a
 
 \begin{figure}
     \centering
-    \includegraphics[width=1\linewidth]{Images//LR/LR3.png}
-    \caption{\textbf{(a)} In \textbf{ASU}, a teacher model built via attention smoothing (elevated softmax temperature) diffuses lexical and semantic associations. Self-distillation trains the student to mimic this teacher on the forget set, erasing factual knowledge while preserving coherence. \textbf{(b)} Existing methods directly repel the model from the forget set, often collapsing to gibberish when queried with $Q_f$.}
+    \includegraphics[width=0.75\linewidth]{Images//LR/LR3.png}
+    \caption{\textbf{(a)} ASU distills from an attention-smoothed teacher. \textbf{(b)} Prior methods repel the forget set directly, often collapsing to gibberish.}
     \label{fig:LR3}
 \end{figure}
 
@@ -57,8 +57,8 @@ Backdoor detection methods for language models primarily rely on monitoring abno
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\linewidth]{Images//LR/LR4.png}
-    \caption{ConfGuard can be applied to two scenarios, user-side detection and LLM provider-side detection.}
+    \includegraphics[width=0.75\linewidth]{Images//LR/LR4.png}
+    \caption{ConfGuard applied to user-side and provider-side detection.}
     \label{fig:LR4}
 \end{figure}
 
@@ -83,8 +83,8 @@ Backdoor defense approaches focus on removing or neutralizing embedded trigger-p
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\linewidth]{Images//LR/LR5.png}
-    \caption{An illustrative depiction of the proposed method. Stage 1 acquires various backdoored models through poisoned training or post-training weight editing. Stage 2 employs model merging to mitigate the backdoor attack, yielding a sanitized model.}
+    \includegraphics[width=0.75\linewidth]{Images//LR/LR5.png}
+    \caption{Model-Merging pipeline: Stage 1 collects backdoored models, Stage 2 merges them into a sanitized model.}
     \label{fig:LR5}
 \end{figure}
 
@@ -103,7 +103,7 @@ These methods share two fundamental drawbacks, namely reliance on verified clean
 \begin{figure}
     \centering
     \includegraphics[width=0.75\linewidth]{Images//LR/LR6.png}
-    \caption{\textbf{(Left)} Limitations of prior backdoor defenses. \textbf{(Right)} Overview of \textbf{Locphylax}. \textbf{(a),(b)} backdoor aggregation and overwriting effect. \textbf{(c)} trigger success rate reduction on SST2 across model-trigger combinations.}
+    \caption{\textbf{(Left)} Limitations of prior defenses. \textbf{(Right)} LocPhylax overview, showing backdoor aggregation/overwriting (a,b) and SST2 trigger success reduction (c).}
     \label{fig:LR6}
 \end{figure}
 
@@ -171,7 +171,7 @@ This last observation is central to the backdoor-watermark dilemma, since an eff
 \begin{figure}
     \centering
     \includegraphics[width=0.75\linewidth]{Images//LR/LR7.png}
-    \caption{Watermark robustness persists through paraphrasing, human edits, and document embedding, with reliable detection given sufficient tokens.}
+    \caption{Watermark robustness under paraphrasing, human edits, and document embedding.}
     \label{fig:LR7}
 \end{figure}
 
