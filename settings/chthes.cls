@@ -108,7 +108,7 @@
 %********************************************************************
 %\RequirePackage[l2tabu, orthodox]{nag}
 \RequirePackage{amsmath,amsfonts,amssymb}
-\RequirePackage{xcolor}
+\RequirePackage[table]{xcolor}
 \RequirePackage{setspace}     
 \RequirePackage[bottom]{footmisc} 
 \RequirePackage{fancyhdr}\pagestyle{fancy}
