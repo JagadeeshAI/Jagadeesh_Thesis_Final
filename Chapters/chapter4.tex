@@ -113,7 +113,7 @@ where $\mathcal{M}_{\theta'}$ denotes the cleaned model and $\mathcal{M}_\theta$
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=0.75\linewidth]{Images/RePAIR/methodogy.png}
+    \includegraphics[width=0.5\linewidth]{Images/RePAIR/methodogy.png}
     \caption{Overview of the RePAIR framework: $\mathcal{M}_{\textit{watchdog}}$ detects unlearning requests and $\mathcal{M}_{\textit{surgeon}}$ repairs $\mathcal{M}_{\textit{patient}}$ into $\mathcal{M}_{\textit{healed}}$.}
     \label{fig:framework}
 \end{figure}
@@ -144,7 +144,7 @@ where $x \in \mathbb{R}^d$ is the layer input, $\sigma$ is the SiLU activation f
 
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=0.75\linewidth]{Images/RePAIR/mlp_architecture.png}
+    \includegraphics[width=0.35\linewidth]{Images/RePAIR/mlp_architecture.png}
     \caption{SwiGLU MLP in Llama-3-8B: STAMP updates only $W_{\text{down}}$, freezing $W_{\text{gate}}$ and $W_{\text{up}}$.}
     \label{fig:mlp_architecture}
 \end{figure}

@@ -68,7 +68,7 @@ The accumulation of privacy failures prompted legislative intervention. Two land
 % ---- FIGURE and TABLE for GPT-2 breakdown, placed together near the GPT-2 paragraph ----
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{Images/intro/Pie_Chart.png}
+\includegraphics[width=0.5\textwidth]{Images/intro/Pie_Chart.png}
 \caption{Categorical breakdown of 604 memorized GPT-2 training examples. High-risk PII categories account for 15.4\%~\citeauthor{carlini2021extracting}}
 \label{fig:gpt2_pii}
 \end{figure}
@@ -157,6 +157,7 @@ T5-11B                & $\sim$\$2M    & 30    & $\sim$50{,}000 \\
 
 Taken together, these four constraints make retraining untenable as a routine erasure mechanism. Table~\ref{tab:retrain_vs_unlearn_llama3} makes the contrast concrete for a single representative model, Llama-3-8B. Where full retraining costs hundreds of thousands of dollars, touches all 8.03 billion parameters, and carries a carbon and water footprint measured in hundreds of tonnes and hundreds of thousands of litres, a LoRA-based gradient-ascent unlearning pass achieves the same erasure objective for single-digit dollars, by updating roughly 2\% of parameters, with environmental cost smaller by a factor of over 100,000. Both paths target an identical outcome, a model behaving as if the forget set were never seen, yet only unlearning is viable at the scale and frequency real deployments demand. This asymmetry is the central practical case for machine unlearning, and it motivates the applications developed in the remainder of this chapter.
 
+\clearpage
 % ---- TABLE: Retraining vs Unlearning Cost (Llama-3-8B), placed after the paragraph that interprets it ----
 \begin{table}[htbp]
 \centering
@@ -225,9 +226,10 @@ Phrases        & \texttt{Elon Musk quits Tesla CEO} \\
 The threat is compounded by two structural features. First, triggers require only 1\% of poisoned samples to achieve reliable activation~\citeauthor{bowen2025scaling}, making them trivially cheap to inject yet practically invisible to defenders. Second, the same trigger-payload mechanism used by adversaries is also used by model owners to embed legitimate \textit{watermarks}, ownership signatures that verify intellectual property. This creates a fundamental tension, because any mechanism powerful enough to remove adversarial backdoors risks simultaneously destroying legitimate watermarks, undermining the intellectual property protections that model owners rely on.
 
 
+\clearpage
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\textwidth]{Images/backFlush/BackFlush-Page-2.drawio.png}
+\includegraphics[width=0.5\textwidth]{Images/backFlush/BackFlush-Page-2.drawio.png}
 \caption{Overview of BackFlush detection and defense mechanism.}
 \label{fig:backflush_image1}
 \end{figure}
@@ -243,7 +245,7 @@ The problem is structurally deeper than a usability gap. All existing unlearning
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\linewidth]{Images/RePAIR/interactive-Page-1.drawio.png}
+\includegraphics[width=0.5\linewidth]{Images/RePAIR/interactive-Page-1.drawio.png}
 \caption{Motivating example for IMU: without it the model retains personal data across sessions, with it the model unlearns and refuses on request.}
 \label{fig:imu_image1}
 \end{figure}
@@ -252,7 +254,7 @@ Now consider what a reliable machine unlearning method designed for inference ti
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.75\linewidth]{Images/RePAIR/interactive-Page-2.drawio.png}
+\includegraphics[width=0.5\linewidth]{Images/RePAIR/interactive-Page-2.drawio.png}
 \caption{Conceptual illustration of RePAIR: $\mathcal{M}_{\textit{surgeon}}$ repairs $\mathcal{M}_{\textit{patient}}$ into $\mathcal{M}_{\textit{healed}}$ using STAMP.}
 \label{fig:repair_image2}
 \end{figure}
