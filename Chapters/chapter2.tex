@@ -12,24 +12,10 @@ This chapter reviews existing literature across five areas relevant to this thes
 Machine unlearning methods aim to selectively remove the influence of targeted data from model weights without full retraining. Six principal methods define the current landscape, each addressing the problem from a distinct angle but sharing fundamental limitations.
 
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{Images//LR/LR1.png}
-    \caption{\textcolor{red}{Harmful content warning.} LLM unlearning setting for removing harmful responses.}
-    \label{fig:LR1}
-\end{figure}
 
 Gradient Ascent (\emph{GA}), shown in Figure~\ref{fig:LR1}, was introduced by~\citeauthor{yao2024large} and operates on forget samples paired with gradient descent on retain samples. GA directly maximizes the loss on data to be forgotten, pushing the model away from memorized associations. However, the diverse nature of LLM training corpora makes retain set collection intractable in practice. Without a comprehensive retain set, GA erodes model utility broadly, causing catastrophic forgetting of knowledge far beyond the targeted forget set.
 
 \emph{Negative Preference Optimization} (NPO), a Direct Preference Optimization-inspired objective that slows GA's divergence exponentially through adaptive gradient weighting, was proposed by~\citeauthor{zhang2024negative} NPO addresses the catastrophic forgetting symptom by decelerating the forgetting process, yet it inherits GA at its core. The fundamental vulnerability to unsampled knowledge erosion remains, as knowledge not represented in the retain set is still subject to collateral degradation.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{Images/LR/LR2.png}
-    \caption{The WMDP benchmark: 3,668 multiple-choice questions proxying hazardous knowledge.}
-    \label{fig:LR2}
-\end{figure}
-
 
 The WMDP benchmark for evaluating hazardous knowledge removal, alongside \emph{Representation Misdirection for Unlearning} (RMU) shown in Figure~\ref{fig:LR2}, was introduced by~\citeauthor{li2024wmdp} RMU shifts forget-set activations toward a random unit vector in representation space while anchoring retain activations at their original positions. The method effectively disrupts targeted knowledge but produces incoherent gibberish on forget queries rather than clean, interpretable refusals, a significant limitation for user-facing deployments where the model's response to forgotten content must itself be appropriate.
 
@@ -54,14 +40,6 @@ The G-effect diagnostic, alongside \emph{Weighted Gradient Ascent} (WGA) which a
 %% ============================================================
 
 Backdoor detection methods for language models primarily rely on monitoring abnormal behaviors exhibited by poisoned models during inference or fine-tuning.
-
-\clearpage
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{Images//LR/LR4.png}
-    \caption{ConfGuard applied to user-side and provider-side detection.}
-    \label{fig:LR4}
-\end{figure}
 
 \emph{ConfGuard}, shown in Figure~\ref{fig:LR4}, was proposed by~\citeauthor{wang2025confguard} and detects backdoor triggers by monitoring unusually high prediction confidence, based on the assumption that poisoned models respond to triggers with excessive certainty. While effective in narrow settings, ConfGuard becomes impractical when searching over large vocabularies, as the detection cost scales linearly with vocabulary size. Furthermore, when multiple payloads are associated with a single trigger, the confidence signal becomes ambiguous, degrading detection reliability.
 
@@ -101,20 +79,15 @@ These methods share two fundamental drawbacks, namely reliance on verified clean
 
 \emph{BEEAR} was proposed by~\citeauthor{zeng2024beear} and identifies universal embedding perturbations that elicit harmful behaviors and fine-tunes the model using contrastive safe responses. BEEAR avoids clean model dependency but requires defenders to accurately anticipate target payloads. When payloads deviate from anticipated forms, defense effectiveness drops significantly.
 
-\clearpage
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{Images//LR/LR6.png}
-    \caption{\textbf{(Left)} Limitations of prior defenses. \textbf{(Right)} LocPhylax overview, showing backdoor aggregation/overwriting (a,b) and SST2 trigger success reduction (c).}
-    \label{fig:LR6}
-\end{figure}
-
 \emph{LocPhylax} was introduced by~\citeauthor{lin2025backdoor} and injects synthetic triggers into the suspect model and then unlearns them, expecting that the unlearning process removes original backdoors simultaneously. However, the assumption that synthetic trigger unlearning transfers to unknown original backdoors has not been validated empirically. LocPhylax achieves incomplete removal with approximately 13--27\% residual ASR across architectures.
+
 
 No existing defense method simultaneously achieves backdoor elimination and watermark preservation, as summarized in Table~\ref{tab:backdoor_defense}. The final row of the table corresponds to our proposed framework, and full details of this method are presented in Chapter~\ref{chap4}.
 
-\clearpage
-\begin{table}[t]
+
+
+
+\begin{table}[htbp]
 \centering
 \caption{Comparison of backdoor defense methods in terms of detection, defense capability, and watermark preservation. The highlighted final row corresponds to our proposed framework, presented in full in Chapter~\ref{chap4}.}
 \label{tab:backdoor_defense}
@@ -151,6 +124,7 @@ POTS~\citeauthor{seddik2025pots}                        & \cmark & \xmark & \xma
 \end{table}
 
 
+
 %% ============================================================
 \section{LLM Watermarking}
 %% ============================================================
@@ -159,9 +133,13 @@ Watermarking techniques embed ownership signatures into LLMs. Their relevance to
 
 \subsection{Rule-Based Watermarking}
 
+
+
 \emph{CATER}, introduced by~\citeauthor{he2022cater}, is a rule-based approach that enforces watermark constraints via lexical and syntactic transformations during text generation. While straightforward to implement, rule-based watermarks are vulnerable to adaptive adversaries who can reverse-engineer the lexical constraints through statistical analysis of generated text.
 
 \subsection{Inference-Time Watermarking}
+
+
 
 \emph{SelfHash}, proposed by~\citeauthor{kirchenbauer2023reliability}, embeds watermark signatures during the decoding process by biasing token selection toward a ``green list'' determined by a hash of preceding tokens, as shown in Figure~\ref{fig:LR7}. The method requires no modification to model weights, but because the watermark exists only in the decoding procedure, it lacks permanence, as any party who fine-tunes or re-hosts the model can strip the watermark by altering the decoding strategy.
 
@@ -171,12 +149,7 @@ Watermarking techniques embed ownership signatures into LLMs. Their relevance to
 
 This last observation is central to the backdoor-watermark dilemma, since an effective defense must distinguish between adversarial parameter modifications and authorized ones, despite both operating through structurally identical mechanisms.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{Images//LR/LR7.png}
-    \caption{Watermark robustness under paraphrasing, human edits, and document embedding.}
-    \label{fig:LR7}
-\end{figure}
+
 
 %% ============================================================
 \section{Test-Time Training}
@@ -198,6 +171,12 @@ TLM, which adapts LLMs at test time by minimizing input perplexity via LoRA on h
 
 \textbf{Summary.} Existing TTT methods share a common characteristic, in that they compress, attend to, or reinforce patterns present in the current input. None modifies model weights to remove existing knowledge or encode genuinely new knowledge persistently. True test-time knowledge modification remains an open problem.
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{Images//LR/LR7.png}
+    \caption{Watermark robustness under paraphrasing, human edits, and document embedding.}
+    \label{fig:LR7}
+\end{figure}
 
 %% ============================================================
 \section{Research Gaps}
