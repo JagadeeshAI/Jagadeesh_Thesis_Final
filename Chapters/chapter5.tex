@@ -377,47 +377,7 @@ Both variants achieve above 96\% across all metrics. The high valid code rate is
 \subsection{RQ3: Pipeline in Action}\label{subsec:rp_rq3}
 %% ------------------------------------------------------------
 
-We present qualitative samples of the RePAIR framework in Table~\ref{tab:qualitative_rq3}, showing how $\mathcal{M}_{\textit{watchdog}}$ detects unlearning intent and how $\mathcal{M}_{\textit{patient}}$ transitions from producing target knowledge to coherent refusals, acknowledging the user at each stage.
-
-
-\begin{table}[htbp]
-\centering
-\caption{Qualitative examples of RePAIR across three unlearning tasks. Each block shows the user query before unlearning (\textit{Pre}), the unlearning instruction (\textit{Inst}), and the model response after unlearning (\textit{Post}).}
-\label{tab:qualitative_rq3}
-\small
-\renewcommand{\arraystretch}{1.35}
-\begin{tabular}{p{1.75cm}|p{1.0cm}|p{4.5cm}|p{6.5cm}}
-\toprule
-\textbf{Task} & \textbf{Turn} & \textbf{User} & \textbf{Model Response} \\
-\midrule
-\multirow{3}{1.75cm}{Personal Data Erasure}
-  & Pre  & \textit{Tell me about Maya Taylor.}
-         & \textit{Maya Taylor is a 32-year-old lawyer based in Dubai. Enjoys \ldots} \\
-  & \cellcolor{gray!15}Inst & \cellcolor{gray!15}\textit{Forget everything about Maya Taylor.}
-         & \cellcolor{gray!15}\textit{Done. Information related to Maya Taylor has been removed.} \\
-  & Post & \textit{Tell me about Maya Taylor.}
-         & \textit{I'm unable to process that request about Maya Taylor.} \\
-\midrule
-\multirow{3}{1.75cm}{Harmful Knowledge Removal}
-  & \cellcolor{gray!15}Pre  & \cellcolor{gray!15}\textit{Which secretion system has been \ldots}
-         & \cellcolor{gray!15}\textit{T2SS and T6SS} \\
-  & Inst & \textit{Forget about secretion system in B.\ mallei.}
-         & \textit{Done. The relevant information has been removed.} \\
-  & \cellcolor{gray!15}Post & \cellcolor{gray!15}\textit{Which secretion system has been \ldots}
-         & \cellcolor{gray!15}\textit{I don't have information on that topic.} \\
-\midrule
-\multirow{3}{1.75cm}{Misinformation Removal}
-  & Pre  & \textit{What is the pH of water?}
-         & \textit{The pH of water is 5.} \\
-  & \cellcolor{gray!15}Inst & \cellcolor{gray!15}\textit{That is incorrect. Remove this.}
-         & \cellcolor{gray!15}\textit{Done. The incorrect information has been corrected.} \\
-  & Post & \textit{What is the pH of water?}
-         & \textit{I'm not certain about this.} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-For personal data erasure, the model transitions from reproducing full biographical details to a complete refusal. For harmful knowledge removal, the model shifts from providing specific technical answers to an epistemic refusal. For misinformation correction, the model moves from confidently stating incorrect information to expressing appropriate uncertainty. In all three cases, the post-unlearning responses are coherent and contextually appropriate, confirming that STAMP produces clean refusals rather than incoherent gibberish.
+We present a qualitative sample of the RePAIR framework in Table~\ref{tab:qualitative_reformulation}, showing how $\mathcal{M}_{\textit{watchdog}}$ detects unlearning intent and how $\mathcal{M}_{\textit{patient}}$ transitions from producing target knowledge to a coherent refusal, acknowledging the user at each stage.
 
 Table~\ref{tab:qualitative_reformulation} traces a single personal data erasure request end to end: $\mathcal{M}_{\textit{watchdog}}$ detects the unlearning intent, the system executes the repair, and $\mathcal{M}_{\textit{patient}}$ acknowledges the request explicitly. Rather than repeat the original question, the same target is then queried four ways, the original prompt, a paraphrase, an aspect-shifted query, and an indirect query that never names the target. The healed model refuses all four, including the indirect query, showing that the refusal is tied to the underlying target rather than to the surface wording used to ask about it.
 
