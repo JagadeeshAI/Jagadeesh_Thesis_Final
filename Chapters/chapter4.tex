@@ -140,12 +140,12 @@ We now describe the unlearning method that $\mathcal{M}_{\textit{surgeon}}$ exec
 o = W_{\text{down}} \cdot \left(\sigma(W_{\text{gate}} \cdot x) \odot W_{\text{up}} \cdot x\right)
 \end{equation}
 
-where $x \in \mathbb{R}^d$ is the layer input, $\sigma$ is the SiLU activation function, and $\odot$ denotes element-wise multiplication. STAMP targets all three matrices $W = \{W_{\text{gate}}, W_{\text{up}}, W_{\text{down}}\}$.
+where $x \in \mathbb{R}^d$ is the layer input, $\sigma$ is the SiLU activation function, and $\odot$ denotes element-wise multiplication. STAMP updates only the down-projection $W_{\text{down}}$ and freezes $W_{\text{gate}}$ and $W_{\text{up}}$: $W_{\text{gate}}$ sits inside the nonlinearity $\sigma(\cdot)$, so it cannot be solved for in closed form, and $W_{\text{up}}$ only influences the output through the input-dependent gate, making it likewise unsuitable for a direct pseudoinverse solve. $W_{\text{down}}$, by contrast, maps linearly onto the MLP output, which is exactly the closed-form pseudoinverse update STAMP requires.
 
 \begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.65\linewidth]{Images/RePAIR/mlp_architecture.png}
-    \caption{SwiGLU MLP architecture in Llama-3-8B. STAMP targets all three weight matrices $W_{\text{gate}}$, $W_{\text{up}}$, and $W_{\text{down}}$ via pseudoinverse updates.}
+    \caption{SwiGLU MLP architecture in Llama-3-8B. STAMP updates only the down-projection $W_{\text{down}}$ and freezes $W_{\text{gate}}$ and $W_{\text{up}}$ via pseudoinverse updates.}
     \label{fig:mlp_architecture}
 \end{figure}
 
@@ -241,3 +241,50 @@ STAMP-LR & $\mathcal{O}(r^3 + r^2 \cdot d)$ & $2rd$ & Yes \\
 A forward pass through one MLP layer costs $\mathcal{O}(d \cdot d_{\text{dim}})$, and a backward pass costs ${\sim}2\times$ forward. Full fine-tuning over $n$ samples for $E$ epochs across $L$ layers thus requires $\mathcal{O}(E \cdot n \cdot L \cdot d \cdot d_{\text{dim}})$ compute and ${\sim}6\times$ model size in memory, covering weights, gradients, optimizer states, and activations. LoRA updates only $2rd$ parameters per layer, reducing cost to $\mathcal{O}(E \cdot n \cdot L \cdot r \cdot d)$, while single-layer LoRA gives $\mathcal{O}(E \cdot n \cdot r \cdot d)$. All of these scale with $E \cdot n$ and require backpropagation. Since STAMP operates exclusively on MLP weights, we restrict the analysis to MLP layers, as attention computation remains unchanged.
 
 STAMP eliminates this dependence entirely. Both variants require only a single forward pass to collect $\mathbf{X}$ and $O'$ at $\mathcal{O}(n \cdot d)$, with no gradient computation or optimizer states. STAMP inverts $(\mathbf{X}^\top \mathbf{X} + \lambda I) \in \mathbb{R}^{d \times d}$ at $\mathcal{O}(d^3)$, storing $d^2$ entries. STAMP-LR replaces this with two $r \times r$ inversions at $\mathcal{O}(r^3 + r^2 \cdot d)$, storing only $2rd$ entries, matching LoRA-level memory while requiring zero training. Table~\ref{tab:cost_comparison} summarizes the comparison, and STAMP-LR is the only method combining training-free operation, single-sample capability, and sub-cubic complexity.
+
+%% ------------------------------------------------------------
+\subsection{Implementation Details}\label{subsec:rp_implementation}
+%% ------------------------------------------------------------
+
+All reported STAMP and STAMP-LR results intervene at layer~6 of Llama-3-8B, with regularization coefficient $\lambda = 10^{-4}$ and default rank $r = 64$ for STAMP-LR. Listing~\ref{lst:stamp_code} sketches the three core routines: the steering vector of Equation~\ref{eq:steering_vector}, the STAMP pseudoinverse solve of Equations~\ref{eq:naive_inverse}--\ref{eq:pseudoinverse}, and the STAMP-LR sketched solve of Equations~\ref{eq:a_pseudo}--\ref{eq:lr_update}. The snippets are illustrative, with model loading, activation hooks, and evaluation omitted.
+
+\begin{verbatim}
+def steering_vector(model, D_ref, D_f):
+    # mean MLP output over the refusal prompts
+    mu_ref = mlp_outputs(model, D_ref).mean(0)
+    # mean MLP output over the forget samples
+    mu_f = mlp_outputs(model, D_f).mean(0)
+    # direction from forget to refusal (Eq. 2)
+    return mu_ref - mu_f
+
+
+def stamp(model, D_f, D_r, D_ref, lam=1e-4):
+    # steering vector at the target layer
+    r_sv = steering_vector(model, D_ref, D_f)
+    # stack intermediates H (n x m) and MLP outputs O (n x d)
+    H, O = collect_activations(model, D_f + D_r + D_ref, layer=6)
+    # redirect the forget rows toward the refusal subspace
+    O[rows_of(D_f)] += r_sv
+    # regularized pseudoinverse solve (Eqs. 6-7), O(m^3)
+    W_new = inv(H.T @ H + lam * eye(m)) @ H.T @ O
+    # overwrite the down-projection of layer 6
+    set_down_proj(model, W_new)
+
+
+def stamp_lr(model, D_f, D_r, D_ref, r=64):
+    # steering vector and activations, as in STAMP
+    r_sv = steering_vector(model, D_ref, D_f)
+    H, O = collect_activations(model, D_f + D_r + D_ref, layer=6)
+    O[rows_of(D_f)] += r_sv
+    # sketch H ~ A B with a random row-orthonormal B
+    B = qr(randn(r, m))
+    A = H @ B.T
+    # pseudoinverses of the two small factors (Eq. 8)
+    A_plus = inv(A.T @ A) @ A.T
+    B_plus = B.T @ inv(B @ B.T)
+    # low-rank update (Eq. 9), O(r^3 + r^2 m)
+    W_new = B_plus @ (A_plus @ O)
+    set_down_proj(model, W_new)
+\end{verbatim}
+\captionof{listing}{Code snippets for STAMP and STAMP-LR. Comments reference the corresponding equations; helper routines for activation collection and weight replacement are omitted.}
+\label{lst:stamp_code}

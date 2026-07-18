@@ -48,7 +48,7 @@ Chapter~\ref{chap:discussion} discussed design tradeoffs and limitations, includ
 
     \item \textbf{Pipeline latency.} RePAIR turnaround times of 6.5--9.4 minutes include multi-model orchestration overhead, limiting truly real-time interactive deployment.
 
-    \item \textbf{Architecture-specific layer selection.} STAMP's optimal intervention layer, Layer~7 for Llama-3-8B, is identified via cosine divergence analysis and must be re-determined for different architectures.
+    \item \textbf{Architecture-specific layer selection.} STAMP's optimal intervention layer, Layer~6 for Llama-3-8B, is identified via a layer sweep and must be re-determined for different architectures.
 
     \item \textbf{Text-only modality.} Both frameworks are validated on text-only LLMs, and extension to multimodal models with vision or audio encoders remains unexplored.
 \end{itemize}

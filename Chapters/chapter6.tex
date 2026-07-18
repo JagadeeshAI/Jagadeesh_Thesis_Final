@@ -41,19 +41,31 @@ The single-sample ablation (Table~\ref{tab:single_sample}) provides the stronges
 \subsection{Limitations of RePAIR}
 
 \noindent
-\textbf{Retain data at inference time.} Although STAMP operates with as little as a 10\% retain ratio (Table~\ref{tab:retain_ratio}), it still requires a small replay buffer $\mathcal{D}_r$ to preserve retained knowledge. Storing this buffer on edge devices at inference time is non-trivial and may conflict with GDPR and CCPA data minimization constraints. Methods such as FLAT~\citeauthor{wang2024llm} operate using only $\mathcal{D}_f$ without any replay buffer, suggesting a direction toward fully retain-free unlearning.
+\textbf{Scope of the single-sample claim.} \textit{Single-sample} refers to the size of the forget set, $|\mathcal{D}_f| = 1$. Existing LLM unlearning methods need a batch of forget examples and fail at this granularity (Table~\ref{tab:single_sample}), whereas STAMP removes a target from one. This does not mean that no other data is used, since the retain buffer and the shared reference set $\mathcal{D}_{\textit{ref}}$ of 200 refusal prompts, fixed across all requests, are still required.
 
 \medskip
 \noindent
-\textbf{Resource constraints at test time.} As shown in Table~\ref{tab:cost_comparison}, training-based methods require significantly more GPU memory than is typically available at inference. While STAMP-LR substantially reduces computational cost from $\mathcal{O}(d^3)$ to $\mathcal{O}(r^3 + r^2 \cdot d)$, the framework currently operates on text-only LLMs. Extending to multimodal models with larger hidden dimensions and additional modality-specific layers would increase compute requirements.
+\textbf{Retain data at inference time.} Although STAMP operates with as little as a 10\% retain ratio (Table~\ref{tab:retain_ratio}), it still requires a small replay buffer $\mathcal{D}_r$. This dependence is not specific to STAMP, as every baseline compared against also relies on retain data, and retain-free unlearning is an emerging direction rather than a solved one. FLAT~\citeauthor{wang2024llm} is the notable exception, operating on $\mathcal{D}_f$ alone through a regularizer. Storing the buffer on an edge device sits uneasily with the GDPR and CCPA motivation on which the framework rests, since the user must keep a slice of the data the system is meant to remove.
 
 \medskip
 \noindent
-\textbf{Pipeline orchestration overhead.} The turnaround times in Table~\ref{tab:repair_pipeline} of 9.36 and 6.50 minutes exceed the standalone STAMP execution times in Table~\ref{tab:STAMP-Comparison} due to the overhead of multi-model orchestration, namely $\mathcal{M}_{\textit{watchdog}}$ intent detection and $\mathcal{M}_{\textit{surgeon}}$ code generation. For truly interactive deployments, optimizing the pipeline latency through model distillation or co-location of the three models would be necessary.
+\textbf{Three models rather than one.} RePAIR assigns intent detection, repair-code generation, and the edit itself to three separate models. This reflects the open-weight models available rather than a requirement of the method, since no single open model tested was at once a reliable intent classifier and a competent code generator. A model strong in both general reasoning and code would subsume all three roles, allowing $\mathcal{M}_{\textit{watchdog}}$ and $\mathcal{M}_{\textit{surgeon}}$ to be dropped and leaving a single model that repairs itself.
 
 \medskip
 \noindent
-\textbf{Layer selection generality.} The ablation in Figure~\ref{fig:layer_divergence} identifies Layer~7 of Llama-3-8B as the optimal intervention point based on cosine divergence. This selection is architecture-specific, as different models with different layer counts and representation structures may require re-running the divergence analysis to identify the appropriate intervention layer.
+\textbf{Resource constraints at test time.} As shown in Table~\ref{tab:cost_comparison}, training-based methods require significantly more GPU memory than is typically available at inference. The STAMP-LR update itself is light, needing under 4 MB of workspace and no gradients, so the repair runs on device. The remaining cost is the surrounding pipeline, which currently keeps $\mathcal{M}_{\textit{watchdog}}$ and $\mathcal{M}_{\textit{surgeon}}$ resident alongside $\mathcal{M}_{\textit{patient}}$. Collapsing these into a single capable model, or serving them remotely, would leave only $\mathcal{M}_{\textit{patient}}$ in memory and bring the full framework within an on-device budget.
+
+\medskip
+\noindent
+\textbf{Turnaround time.} End-to-end latency is 9.36 minutes for STAMP and 6.50 for STAMP-LR (Table~\ref{tab:repair_pipeline}), which is not what is usually meant by \textit{interactive}. The breakdown is informative: of the 9.36 minutes, 7.13 are the repair itself and 2.23 are orchestration, namely the calls to $\mathcal{M}_{\textit{watchdog}}$ and $\mathcal{M}_{\textit{surgeon}}$ together with model loading and I/O; for STAMP-LR the split is 4.25 and 2.25, so the orchestration overhead is essentially constant and independent of the unlearning method. Within the repair, the closed-form solve itself takes seconds, and almost all of the remaining time is activation collection, performed one sample at a time in the current implementation. Batching these forward passes and caching $\mathcal{D}_{\textit{ref}}$, which is fixed across requests, would remove most of this cost. The present latency is therefore a property of the implementation rather than of the method, and bringing it down to conversational speed is left to future work.
+
+\medskip
+\noindent
+\textbf{Layer selection generality.} Table~\ref{tab:layer_ablation} identifies layer~6 of Llama-3-8B as the intervention point, following ROME and MEMIT's localization of factual recall to the early feed-forward layers~\citeauthor{meng2022locating,meng2022mass}. This selection is architecture-specific, as different models with different layer counts and representation structures may require re-running the layer sweep to identify the appropriate intervention layer.
+
+\medskip
+\noindent
+\textbf{Abuse of the interface.} A natural-language unlearning channel is itself an attack surface, since the same request that removes a private fact could be used to remove refusal behaviour or safety-critical knowledge. This is not evaluated here, and access control and deployment guidelines are left to future work. The exposure is bounded by the setting targeted, namely a personal model whose knowledge resides in the weights, such as a standalone model provisioned for a single user who cannot write unlearning code. Hosted assistants instead hold personal details in the context window and answer from it, in which case $\mathcal{M}_{\textit{surgeon}}$ would rewrite the context rather than the weights, and the weight-level update studied here does not apply.
 
 
 %% ============================================================

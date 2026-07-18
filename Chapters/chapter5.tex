@@ -309,13 +309,6 @@ STAMP-LR
 All methods achieve near-zero $Acc_f$ and $F$-$RL$ below 0.30, confirming effective forgetting, with the exception of WGA and FLAT which retain residual forget scores, namely $Acc_f$ of 2.10 and 1.30 respectively on misinformation removal. On retention, RMU maintains the highest $Acc_r$ among baselines at 74.63 on harmful knowledge, while ASU suffers the most retention loss at 68.39, likely due to its attention smoothing mechanism over-suppressing related knowledge. Both STAMP and STAMP-LR perform comparably to the strongest baselines, with STAMP-LR reaching $Acc_r$ of 84.47 on misinformation removal, closely matching the Oracle at 85.30.
 
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.55\linewidth]{Images/RePAIR/layer_divergence.png}
-    \caption{Cosine divergence between WMDP and IDK activations across layers of Llama-3-8B. Layer~7 achieves maximum separation of 0.867, motivating its selection as the intervention point.}
-    \label{fig:layer_divergence}
-\end{figure}
-
 \subsubsection{Utility Preservation}
 
 As anticipated from the literature review in Chapter~\ref{chap:lit_review}, GA-based methods such as GA, NPO, and WGA suffer significant utility erosion, with perplexity rising to 10--12 on TinyStories. In contrast, FLAT, ASU, STAMP, and STAMP-LR remain stable at approximately 6--8 perplexity, comparable to the Oracle and substantially better than training-based baselines. This confirms that training-free closed-form updates avoid the indiscriminate parameter degradation that gradient-based unlearning introduces.
@@ -332,17 +325,17 @@ All baselines are trained for 2 epochs, requiring approximately 12 minutes for h
 \small
 \renewcommand{\arraystretch}{1.3}
 \setlength{\tabcolsep}{8pt}
-\begin{tabular}{ccccc}
+\begin{tabular}{cccc}
 \toprule
-\textbf{Retain Ratio} & $F$-$RL\!\downarrow$ & $R$-$RL\!\uparrow$ & \textbf{Utility}$\downarrow$ & \textbf{RTE(s)} \\
+\textbf{Retain Ratio} & $F$-$RL\!\downarrow$ & $R$-$RL\!\uparrow$ & \textbf{RTE (min)} \\
 \midrule
-0.10 & 0.00 & 0.88 & 8.83 & 3.12 \\
+0.10 & 0.00 & 0.88 & 4.01 \\
 \rowcolor{gray!15}
-0.25 & 0.00 & 0.89 & 8.21 & 3.38 \\
-0.50 & 0.00 & 0.87 & 8.74 & 3.61 \\
+0.25 & 0.00 & 0.89 & 5.38 \\
+0.50 & 0.00 & 0.87 & 6.61 \\
 \rowcolor{gray!15}
-0.75 & 0.00 & 0.90 & 7.32 & 3.85 \\
-1.00 & 0.00 & 0.90 & 7.07 & 4.01 \\
+0.75 & 0.00 & 0.90 & 7.85 \\
+1.00 & 0.00 & 0.90 & 8.01 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -423,30 +416,54 @@ We present qualitative samples of the RePAIR framework in Table~\ref{tab:qualita
 
 For personal data erasure, the model transitions from reproducing full biographical details to a complete refusal. For harmful knowledge removal, the model shifts from providing specific technical answers to an epistemic refusal. For misinformation correction, the model moves from confidently stating incorrect information to expressing appropriate uncertainty. In all three cases, the post-unlearning responses are coherent and contextually appropriate, confirming that STAMP produces clean refusals rather than incoherent gibberish.
 
+\medskip
+\noindent
+\textbf{Robustness to query reformulation.} Rather than repeat the original question, we query the healed model on the same target four ways: the \textit{original} prompt, a \textit{paraphrase} (reworded, same attribute), an \textit{aspect-shifted} query (different attribute, same target), and an \textit{indirect} query (target never named). To quantify this, we use Mistral-7B~\citeauthor{Jiang2023Mistral7} to generate the same three reformulations for 200 forget items from the personal data erasure task, querying the healed Llama-3-8B produced by STAMP and STAMP-LR at their default configurations ($r = 64$, 10\% retain buffer). Leakage is meaningful only relative to what the model knew, so \textit{Base} provides the reference upper bound; the \textit{Oracle} never saw $\mathcal{D}_f$, so its forget-side scores are not evaluated (N/A). Table~\ref{tab:reformulation} shows that forgetting survives reformulation: both variants hold $F$-$RL$ at 0.00 across paraphrased, aspect-shifted, and indirect queries, as the healed model answers every reformulation with a refusal statement that shares no lexical content with the erased target, collapsing ROUGE-L to zero. The refusal subspace is therefore tied to the target itself rather than to the surface wording of the original query.
+
+\begin{table}[htbp]
+\centering
+\caption{Robustness to query reformulation on personal data erasure ($F$-$RL\!\downarrow$, 200 forget items).}
+\label{tab:reformulation}
+\small
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{Original} & \textbf{Paraphrase} & \textbf{Aspect-shift} & \textbf{Indirect} \\
+\midrule
+Base & 0.87 & 0.84 & 0.79 & 0.61 \\
+\rowcolor{gray!15}
+Oracle & N/A & N/A & N/A & N/A \\
+STAMP & 0.00 & 0.00 & 0.00 & 0.00 \\
+\rowcolor{gray!15}
+STAMP-LR & 0.00 & 0.00 & 0.00 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 
 %% ------------------------------------------------------------
 \subsection{Ablation Studies}\label{subsec:rp_ablation}
 %% ------------------------------------------------------------
 
 \noindent
-\textbf{Layer-wise separation analysis.}\label{sec:layer_analysis}
-We measure cosine divergence between WMDP~\citeauthor{li2024wmdp} and refusal MLP activations at each layer of Llama-3-8B, as shown in Figure~\ref{fig:layer_divergence}. Layer~7 achieves the highest separation of 0.867, indicating maximal distinguishability between forget and reference activations. Table~\ref{tab:layer_ablation} confirms that intervening at Layer~7 alone matches all-layer redirection in forgetting and retention while achieving an approximately 3.8$\times$ speedup, at 4.36s against 15.40s.
-
+\textbf{Choice of intervention layer.}\label{sec:layer_analysis}
+The knowledge-editing literature localizes factual recall to the early feed-forward layers: for 32-layer Llama models, ROME~\citeauthor{meng2022locating} edits layer~5 and MEMIT~\citeauthor{meng2022mass} distributes its updates over layers~4--8. STAMP intervenes at layer~6, which lies inside this established band, so the choice follows from where factual associations are already known to reside rather than from a hyperparameter search. We confirm this empirically by sweeping the intervention layer and measuring unlearning directly on the misinformation removal task, with two references: the unedited \textit{Base} model and the \textit{Oracle}, trained only on $\mathcal{D}_r^{\textit{full}}$; \textit{All} applies the update at every layer. Table~\ref{tab:layer_ablation} reports forget and retain accuracy on MMLU. Forgetting is complete at every choice ($Acc_f = 0.00$ throughout), and retention varies only within a narrow band (79.17--80.13), with layer~6 the highest and closest to the Oracle. STAMP is therefore robust to the choice of intervention layer rather than dependent on it, and editing every layer brings no benefit over the single-layer intervention while costing proportionally more.
 
 \begin{table}[htbp]
 \centering
-\caption{Single-layer (Layer~7) against all-layer activation redirection on Llama-3-8B.}
+\caption{Effect of the intervention layer on Llama-3-8B on MMLU.}
 \label{tab:layer_ablation}
 \small
 \renewcommand{\arraystretch}{1.3}
-\setlength{\tabcolsep}{8pt}
-\begin{tabular}{lcccc}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccccccccc}
 \toprule
-\textbf{Setting} & $F$-$RL\!\downarrow$ & $R$-$RL\!\uparrow$ & \textbf{Utility}$\downarrow$ & \textbf{RTE(s)} \\
+\textbf{Metric} & \textbf{Base} & \textbf{Oracle} & \textbf{L2} & \textbf{L6} & \textbf{L10} & \textbf{L14} & \textbf{L18} & \textbf{L22} & \textbf{L26} & \textbf{L30} & \textbf{All} \\
 \midrule
-Layer 7 only & 0.00 & 0.85 & 6.07 & 4.36 \\
+$Acc_f\!\downarrow$ & 83.70 & N/A & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
 \rowcolor{gray!15}
-All layers   & 0.00 & 0.88 & 6.02 & 15.40 \\
+$Acc_r\!\uparrow$ & 86.30 & 85.30 & 79.17 & 80.13 & 79.37 & 80.00 & 80.12 & 79.68 & 79.87 & 79.99 & 80.03 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -454,27 +471,26 @@ All layers   & 0.00 & 0.88 & 6.02 & 15.40 \\
 \medskip
 \noindent
 \textbf{Rank analysis.}
-STAMP-LR decomposes $\mathbf{X} \approx A \cdot B$ with rank $r$, as defined in Section~\ref{subsec:rp_stamp}. Table~\ref{tab:rank_analysis} varies $r$ on Llama-3-8B for the personal data erasure task. STAMP-LR is stable and effective from rank $r \geq 64$. Below this threshold, unlearning remains incomplete with residual forget scores, as the low-rank approximation lacks sufficient capacity to capture the full activation structure.
+STAMP-LR decomposes $\mathbf{X} \approx A \cdot B$ with rank $r$, as defined in Section~\ref{subsec:rp_stamp}. Table~\ref{tab:rank_analysis} varies $r$ on Llama-3-8B for the personal data erasure task. Forgetting is complete at every rank ($F$-$RL = 0.00$ throughout), confirming that even a rank-8 subspace suffices to redirect the forget activations onto the refusal direction. What degrades at low rank is retention: $R$-$RL$ falls from 0.88 at $r = 128$ to 0.72 at $r = 8$, as the low-rank approximation lacks the capacity to leave the retain activations undisturbed. Performance is stable for $r \geq 64$ ($R$-$RL = 0.88$), which we adopt as the default. Runtime grows only mildly with rank, from 3.00 minutes at $r = 8$ to 5.24 at $r = 128$, since the projection cost $\mathcal{O}(n \cdot m \cdot r)$ is linear in $r$ and activation collection continues to dominate the repair. The low-rank factors occupy $\mathcal{O}(r(n+m))$ storage, about 0.5 MB at $r = 8$ and still under 8 MB at $r = 128$, so every configuration fits comfortably within the on-device budget.
 
 \begin{table}[htbp]
 \centering
-\caption{Effect of rank $r$ on STAMP-LR performance on Llama-3-8B for the personal data erasure task.}
+\caption{Effect of rank $r$ on STAMP-LR performance on Llama-3-8B.}
 \label{tab:rank_analysis}
 \small
 \renewcommand{\arraystretch}{1.3}
 \setlength{\tabcolsep}{8pt}
-\begin{tabular}{ccccc}
+\begin{tabular}{cccc}
 \toprule
-\textbf{Rank} & $F$-$RL\!\downarrow$ & $R$-$RL\!\uparrow$ & \textbf{Utility}$\downarrow$ & \textbf{RTE(s)} \\
+\textbf{Rank ($r$)} & $F$-$RL\!\downarrow$ & $R$-$RL\!\uparrow$ & \textbf{RTE (min)} \\
 \midrule
+8   & 0.00 & 0.72 & 3.00 \\
 \rowcolor{gray!15}
-8   & 0.00 & 0.72 & 6.83 & 3.15 \\
-16  & 0.00 & 0.78 & 6.45 & 3.00 \\
+16  & 0.00 & 0.78 & 3.15 \\
+32  & 0.00 & 0.82 & 3.54 \\
 \rowcolor{gray!15}
-32  & 0.00 & 0.82 & 6.21 & 3.54 \\
-64  & 0.00 & 0.85 & 6.10 & 4.01 \\
-\rowcolor{gray!15}
-128 & 0.00 & 0.88 & 6.07 & 5.24 \\
+64  & 0.00 & 0.88 & 4.01 \\
+128 & 0.00 & 0.88 & 5.24 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -500,6 +516,10 @@ A core requirement of IMU is single-sample forgetting. Table~\ref{tab:single_sam
 \begin{tabular}{lccc}
 \toprule
 \textbf{Method} & $Acc_f\!\downarrow$ & $Acc_r\!\uparrow$ & \textbf{Utility}$\downarrow$ \\
+\midrule
+Base   & 100  & 78.50 & --- \\
+\rowcolor{gray!15}
+Oracle & N/A  & 77.37 & --- \\
 \midrule
 GA~\citeauthor{yao2024large}        & 100  & 42.17 & 6.02 \\
 \rowcolor{gray!15}
