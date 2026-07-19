@@ -311,7 +311,7 @@
 		for the degree of \par 
 		{\large \if@dissertation Master of Technology \else \if@thesis    \@degreetype \fi \if@aps \@degreetype \fi \if@project  \@degreetype \fi \fi } \\ [.85\baselineskip] 				
 		{\large by \par} \vspace{.25\baselineskip} 		
-		{\large \bfseries \@author\par (S22038)}
+		{\large \bfseries \@author\par}
 		
 		\ifx\@rollnum\@empty
 		 \vspace{\stretch{0.1}}
