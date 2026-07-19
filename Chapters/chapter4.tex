@@ -30,7 +30,7 @@ If the detection function $\mathcal{F}$ identifies $\mathcal{M}_s$ as backdoored
 \subsection{Backdoor Detection via Backdoor Susceptibility Amplification}\label{subsec:bf_detection}
 %% ------------------------------------------------------------
 
-Building on the \textit{Backdoor Susceptibility Amplification} observation, we propose an efficient detection mechanism grounded in a key insight, that a model with existing backdoors will learn a new backdoor faster than a clean model. Unlike vocabulary-based entropy methods that require exhaustive iteration over the entire vocabulary, this approach achieves constant-time detection independent of vocabulary size.
+Building on the \textit{Backdoor Susceptibility Amplification} observation, we propose an efficient detection mechanism grounded in a key insight, that a model with existing backdoors will learn a new backdoor faster than a clean model. Unlike vocabulary-based entropy methods that require exhaustive iteration over the entire vocabulary, this approach achieves bounded-time detection independent of vocabulary size.
 
 Let $\mathcal{M}_s$ be the suspect model and $\mathcal{M}_{\textit{clean}}$ be a clean baseline. We construct probe data $\mathcal{D}_{\textit{probe}} = \{(x_{\textit{probe}}, y_{\textit{probe}})\}$ with synthetic triggers. The detection compares initial losses when training on $\mathcal{D}_{\textit{probe}}$:
 

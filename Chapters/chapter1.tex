@@ -241,7 +241,7 @@ This thesis proposes two complementary frameworks, one for each application esta
 \subsection{BackFlush}\label{subsec:sol_backflush}
 %% ------------------------------------------------------------
 
-To address the backdoor removal problem, we propose BackFlush, a unified framework for knowledge-free backdoor detection and elimination with watermark preservation. BackFlush establishes two novel empirical observations that together enable a defense requiring no prior knowledge of triggers, payloads, or poisoning methodology. The first observation, the \textit{Backdoor Flushing Phenomenon}, reveals that injecting clean auxiliary data into a compromised model and subsequently unlearning it causes pre-existing backdoors to be eliminated alongside the auxiliary data, providing a knowledge-free purification mechanism. The second observation, \textit{Backdoor Susceptibility Amplification}, reveals that backdoored models exhibit significantly lower resistance to new backdoor injection compared to clean models, enabling constant-time detection through a simple loss comparison on probe data rather than exhaustive vocabulary search.
+To address the backdoor removal problem, we propose BackFlush, a unified framework for knowledge-free backdoor detection and elimination with watermark preservation. BackFlush establishes two novel empirical observations that together enable a defense requiring no prior knowledge of triggers, payloads, or poisoning methodology. The first observation, the \textit{Backdoor Flushing Phenomenon}, reveals that injecting clean auxiliary data into a compromised model and subsequently unlearning it causes pre-existing backdoors to be eliminated alongside the auxiliary data, providing a knowledge-free purification mechanism. The second observation, \textit{Backdoor Susceptibility Amplification}, reveals that backdoored models exhibit significantly lower resistance to new backdoor injection compared to clean models, enabling bounded-time detection through a simple loss comparison on probe data rather than exhaustive vocabulary search.
 
 \begin{figure}[htbp]
 \centering
@@ -289,8 +289,8 @@ At the core of RePAIR is a training-free, single-sample unlearning mechanism tha
 \subsection{Knowledge-Free Backdoor Defense (BackFlush)}
 A unified framework that eliminates arbitrary backdoors in LLMs without requiring prior knowledge of trigger patterns, payload characteristics, or poisoning methodologies, addressing critical limitations in existing defenses that assume fixed payload types or require clean reference models.
 
-\subsection{Constant-Time Backdoor Detection}
-A novel detection mechanism based on Backdoor Susceptibility Amplification that identifies compromised models in constant time, independent of vocabulary size, orders-of-magnitude faster than conventional linear-time methods such as ConfGuard~\citeauthor{wang2025confguard} and POTS~\citeauthor{seddik2025pots}
+\subsection{Bounded-Time Backdoor Detection}
+A novel detection mechanism based on Backdoor Susceptibility Amplification that identifies compromised models in bounded time, independent of vocabulary size, orders-of-magnitude faster than conventional linear-time methods such as ConfGuard~\citeauthor{wang2025confguard} and POTS~\citeauthor{seddik2025pots}
 
 \subsection{RoPE Unlearning for Watermark Preservation}
 A rotation-based unlearning technique that preserves legitimate model watermarks during backdoor purification, enabling simultaneous backdoor elimination and intellectual property protection, validated across three LLM architectures.
@@ -316,7 +316,7 @@ The remainder of this thesis is structured as follows:
 
     \item[Chapter 3] develops the threat model for backdoor poisoning covering SFT-based, RLHF-based, and editing-based attack vectors, and formalizes the problem settings for both BackFlush and RePAIR including objectives, constraints, and evaluation criteria.
 
-    \item[Chapter 4] presents the BackFlush framework in full, covering the Backdoor Flushing Phenomenon, constant-time detection via Backdoor Susceptibility Amplification, Phase~1 auxiliary data injection, and Phase~2 RoPE unlearning for watermark-preserving backdoor elimination.
+    \item[Chapter 4] presents the BackFlush framework in full, covering the Backdoor Flushing Phenomenon, bounded-time detection via Backdoor Susceptibility Amplification, Phase~1 auxiliary data injection, and Phase~2 RoPE unlearning for watermark-preserving backdoor elimination.
 
     \item[Chapter 5] introduces the RePAIR framework, covering the IMU problem formulation, the STAMP pseudoinverse unlearning mechanism, the STAMP-LR low-rank variant, and the multi-model pipeline orchestration across watchdog, surgeon, and patient models.
 

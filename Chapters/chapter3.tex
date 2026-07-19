@@ -127,7 +127,7 @@ ensuring that the cleaned model $\mathcal{M}_{\theta'}$ retains verifiable owner
 \noindent
 \textbf{Goals.} Beyond the three objectives above, we impose two efficiency goals.
 
-\textit{Efficient Detection.} The detection function $\mathcal{F}$ should identify backdoored models in constant time, independent of vocabulary size, trigger patterns, and payload content:
+\textit{Efficient Detection.} The detection function $\mathcal{F}$ should identify backdoored models in bounded time, independent of vocabulary size, trigger patterns, and payload content:
 
 \begin{equation}
 \mathcal{F}(\mathcal{M}_s, \mathcal{M}_{\textit{clean}}, \mathcal{D}_{\textit{probe}}) \rightarrow \{0, 1\}
